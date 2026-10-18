@@ -1,0 +1,21 @@
+{
+  "recorded": "2026-10-18",
+  "seedKey": "4263f60a",
+  "scope": "direction",
+  "mode": "operate",
+  "assignedIndex": 3,
+  "catalogRevision": "c3b204a1eed6",
+  "chosenDirection": "Shipping manifest",
+  "buildPath": "code",
+  "choiceKey": "8e58e09f",
+  "choiceAnswer": {
+    "optionId": "manifest",
+    "steer": "",
+    "buildPath": "code",
+    "buildPathFlipped": false
+  },
+  "authorization": "User explicitly delegated the design choice. The manifest choice was then recorded through the decision page.",
+  "rollFile": "direction-roll.txt",
+  "rollSHA256": "eb9422ae0b34f965f4192e4dae0365d22d588abac717a53b0d642de50fbd84a4",
+  "verifierCompatibility": "The installed concept-seed --check-seed none command produced a new degraded unscoped roll instead of a validation result. No verifier success or unavailable reference is asserted. The preserved original output records the raw seed key and reproduction command; this is the evidence for the direction assignment."
+}

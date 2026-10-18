@@ -1,0 +1,350 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T18:22:57.166375+00:00",
+  "title": "Design System: CapeAI",
+  "extensions": {
+    "colorMeta": {
+      "navy": {
+        "role": "neutral",
+        "displayName": "Navigation Navy"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Document Ink"
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink"
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Mist Canvas"
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper"
+      },
+      "tint": {
+        "role": "neutral",
+        "displayName": "Green Tint"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rule"
+      },
+      "line-soft": {
+        "role": "neutral",
+        "displayName": "Soft Rule"
+      },
+      "teal": {
+        "role": "primary",
+        "displayName": "Working Teal"
+      },
+      "teal-light": {
+        "role": "primary",
+        "displayName": "Light Teal"
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White"
+      },
+      "danger": {
+        "role": "secondary",
+        "displayName": "Validation Red"
+      },
+      "danger-bg": {
+        "role": "secondary",
+        "displayName": "Validation Surface"
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "Warning Ochre"
+      },
+      "warning-bg": {
+        "role": "secondary",
+        "displayName": "Warning Surface"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles; 1.5rem below 49rem."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Panel headings."
+      },
+      "section-title": {
+        "displayName": "Section Title",
+        "purpose": "Subdivisions and compact summary headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Root text with the local system sans stack."
+      },
+      "supporting": {
+        "displayName": "Supporting",
+        "purpose": "Introductions and explanations."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Field names and units."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Hints, status and data annotations."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Action text."
+      },
+      "input": {
+        "displayName": "Input",
+        "purpose": "Editable values; remains 1rem on mobile."
+      },
+      "metric": {
+        "displayName": "Metric",
+        "purpose": "Primary return values with tabular numerals."
+      }
+    },
+    "shadows": [
+      {
+        "name": "toast",
+        "value": "0 4px 20px oklch(20% .03 210 / .15)",
+        "purpose": "Fixed transient status."
+      },
+      {
+        "name": "dialog",
+        "value": "0 12px 40px oklch(20% .03 210 / .2)",
+        "purpose": "Native replacement-confirmation modal."
+      }
+    ],
+    "backdrops": [
+      {
+        "name": "dialog",
+        "value": "oklch(20% .03 210 / .45)",
+        "purpose": "Dims the page behind an open modal."
+      }
+    ],
+    "motion": [
+      {
+        "name": "button-feedback",
+        "value": "background-color 160ms ease-out, filter 160ms ease-out",
+        "purpose": "Only within prefers-reduced-motion: no-preference."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-rail",
+        "value": "68rem",
+        "condition": "width < 68rem"
+      },
+      {
+        "name": "horizontal-navigation",
+        "value": "49rem",
+        "condition": "width < 49rem"
+      },
+      {
+        "name": "full-width-actions",
+        "value": "25rem",
+        "condition": "width < 25rem"
+      }
+    ],
+    "states": {
+      "focus": {
+        "value": "3px solid var(--teal)",
+        "offset": "3px",
+        "navigationColor": "var(--teal-light)",
+        "tableOffset": "2px"
+      },
+      "pressed": {
+        "value": "brightness(.9)"
+      },
+      "disabled": {
+        "opacity": ".5",
+        "cursor": "not-allowed"
+      },
+      "invalid": {
+        "borderColor": "var(--danger)",
+        "copy": "Written field errors linked by aria-describedby."
+      },
+      "primaryHover": {
+        "value": "color-mix(in oklch,var(--teal),black 10%)",
+        "condition": "hover: hover and pointer: fine"
+      },
+      "navigationCurrent": {
+        "value": "color-mix(in oklch, var(--navy), white 12%)"
+      },
+      "tableCurrent": {
+        "value": "color-mix(in oklch, var(--teal) 7%, var(--paper))"
+      },
+      "tableHover": {
+        "value": "color-mix(in oklch,var(--tint),var(--paper) 50%)",
+        "condition": "hover: hover and pointer: fine"
+      }
+    },
+    "layout": {
+      "contentMax": "90rem",
+      "rail": "13.75rem",
+      "compactRail": "11.75rem",
+      "headerMinHeight": "4.5rem",
+      "fieldColumns": "repeat(auto-fit,minmax(min(100%,14rem),1fr))",
+      "fieldGap": "1.3rem 1.25rem",
+      "formMinWidth": "min(100%,27rem)",
+      "summaryBasis": "15rem",
+      "chartMinWidth": "32rem",
+      "tableScroll": "overflow-x: auto; focusable labelled region",
+      "chartScroll": "overflow-x: auto; focusable labelled region"
+    },
+    "numericTypography": {
+      "value": "font-variant-numeric: tabular-nums",
+      "purpose": "Inputs, summaries, metrics, chart labels and financial tables."
+    },
+    "sourcePaths": [
+      "src/styles.css",
+      "src/app.mjs",
+      "index.html",
+      "PRODUCT.md",
+      ".impeccable/direction-contract.md",
+      ".impeccable/surfaces/index-html.md"
+    ],
+    "assetPolicy": {
+      "shippedAssets": "Authored inline SVG marks, icons and financial geometry.",
+      "shippingRasterAssets": 0,
+      "externalFonts": 0
+    },
+    "extractionNotes": [
+      "No synthesized tonal ramps: the implementation defines semantic colors, and this documentation records implemented values only.",
+      "The schema-v2 frontmatter owns primitive tokens; this sidecar holds extension tokens and actual component CSS.",
+      "Component preview dashes are placeholders, not sample financial results.",
+      "This documentation pass inspected source only; it does not claim a new browser or accessibility audit."
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Implemented primary action with fine-pointer hover, visible focus, press and disabled states.",
+      "html": "<button class=\"ds-button-primary\" type=\"button\">Continue to operations</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-block-size:2.75rem;padding:.55rem 1rem;border:1px solid var(--line, oklch(83% .019 165));border-radius:.375rem;color:var(--ink, oklch(29% .035 214));background:var(--paper, oklch(99.5% .003 135));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:.8125rem;font-weight:600;line-height:1.35;cursor:pointer;}.ds-button-primary{color:var(--white, oklch(100% 0 none));background:var(--teal, oklch(46% .075 171));border-color:var(--teal, oklch(46% .075 171));}.ds-button-primary:focus-visible{outline:3px solid var(--teal, oklch(46% .075 171));outline-offset:3px;}.ds-button-primary:active{filter:brightness(.9);}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed;}@media(hover:hover) and (pointer:fine){.ds-button-primary:not(:disabled):hover{background:color-mix(in oklch,var(--teal, oklch(46% .075 171)),black 10%);}}@media(prefers-reduced-motion:no-preference){.ds-button-primary{transition:background-color 160ms ease-out,filter 160ms ease-out;}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Implemented secondary action with fine-pointer hover, visible focus, press and disabled states.",
+      "html": "<button class=\"ds-button-secondary\" type=\"button\">Save study</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-block-size:2.75rem;padding:.55rem 1rem;border:1px solid var(--line, oklch(83% .019 165));border-radius:.375rem;color:var(--ink, oklch(29% .035 214));background:var(--paper, oklch(99.5% .003 135));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:.8125rem;font-weight:600;line-height:1.35;cursor:pointer;}.ds-button-secondary:focus-visible{outline:3px solid var(--teal, oklch(46% .075 171));outline-offset:3px;}.ds-button-secondary:active{filter:brightness(.9);}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed;}@media(hover:hover) and (pointer:fine){.ds-button-secondary:not(:disabled):hover{background:var(--tint, oklch(93% .017 160));}}@media(prefers-reduced-motion:no-preference){.ds-button-secondary{transition:background-color 160ms ease-out,filter 160ms ease-out;}}"
+    },
+    {
+      "name": "Quiet button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Implemented quiet action with fine-pointer hover, visible focus, press and disabled states.",
+      "html": "<button class=\"ds-button-quiet\" type=\"button\">Inspect the cash flow</button>",
+      "css": ".ds-button-quiet{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-block-size:2.75rem;padding:.55rem 1rem;border:1px solid var(--line, oklch(83% .019 165));border-radius:.375rem;color:var(--ink, oklch(29% .035 214));background:var(--paper, oklch(99.5% .003 135));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:.8125rem;font-weight:600;line-height:1.35;cursor:pointer;}.ds-button-quiet{background:transparent;border-color:transparent;}.ds-button-quiet:focus-visible{outline:3px solid var(--teal, oklch(46% .075 171));outline-offset:3px;}.ds-button-quiet:active{filter:brightness(.9);}.ds-button-quiet:disabled{opacity:.5;cursor:not-allowed;}@media(hover:hover) and (pointer:fine){.ds-button-quiet:not(:disabled):hover{background:var(--tint, oklch(93% .017 160));}}@media(prefers-reduced-motion:no-preference){.ds-button-quiet{transition:background-color 160ms ease-out,filter 160ms ease-out;}}"
+    },
+    {
+      "name": "Destructive quiet button",
+      "kind": "button",
+      "refersTo": "button-quiet-danger",
+      "description": "Implemented danger action with fine-pointer hover, visible focus, press and disabled states.",
+      "html": "<button class=\"ds-button-quiet-danger\" type=\"button\" aria-label=\"Remove charter override 1\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 10v7M14 10v7\"/></svg></button>",
+      "css": ".ds-button-quiet-danger{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-block-size:2.75rem;padding:.55rem 1rem;border:1px solid var(--line, oklch(83% .019 165));border-radius:.375rem;color:var(--ink, oklch(29% .035 214));background:var(--paper, oklch(99.5% .003 135));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:.8125rem;font-weight:600;line-height:1.35;cursor:pointer;}.ds-button-quiet-danger{background:transparent;border-color:transparent;}.ds-button-quiet-danger{color:var(--danger, oklch(44% .15 29));}.ds-button-quiet-danger:focus-visible{outline:3px solid var(--teal, oklch(46% .075 171));outline-offset:3px;}.ds-button-quiet-danger:active{filter:brightness(.9);}.ds-button-quiet-danger:disabled{opacity:.5;cursor:not-allowed;}@media(hover:hover) and (pointer:fine){.ds-button-quiet-danger:not(:disabled):hover{background:var(--tint, oklch(93% .017 160));}}@media(prefers-reduced-motion:no-preference){.ds-button-quiet-danger{transition:background-color 160ms ease-out,filter 160ms ease-out;}}.ds-button-quiet-danger svg{inline-size:1.25em;block-size:1.25em;}"
+    },
+    {
+      "name": "Labelled financial input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Visible unit, native number input and linked explanatory text.",
+      "html": "<div class=\"ds-field\"><label for=\"ds-purchase\">Purchase price <span>· USD</span></label><input id=\"ds-purchase\" type=\"number\" min=\"0.01\" step=\"any\" aria-describedby=\"ds-purchase-help\"><small id=\"ds-purchase-help\">Vessel price before acquisition costs.</small></div>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:.4rem;color:var(--ink, oklch(29% .035 214));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);}.ds-field label{display:flex;flex-wrap:wrap;gap:.25rem;font-size:.75rem;font-weight:600;line-height:1.5;}.ds-field label span{color:var(--muted, oklch(47% .025 207));font-weight:400;}.ds-field input{box-sizing:border-box;inline-size:100%;min-block-size:2.75rem;padding:.6rem .75rem;border:1px solid var(--line, oklch(83% .019 165));border-radius:.3rem;color:var(--ink, oklch(29% .035 214));background:var(--paper, oklch(99.5% .003 135));caret-color:var(--teal, oklch(46% .075 171));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:1rem;line-height:1.35;font-variant-numeric:tabular-nums;}.ds-field input:focus-visible{outline:3px solid var(--teal, oklch(46% .075 171));outline-offset:3px;}.ds-field input[aria-invalid=\"true\"]{border-color:var(--danger, oklch(44% .15 29));}.ds-field small{color:var(--muted, oklch(47% .025 207));font-size:.6875rem;line-height:1.5;}"
+    },
+    {
+      "name": "Workspace navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Navy navigation with a tonal current-page state and preserved mobile labels.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace\"><button type=\"button\" aria-current=\"page\">Study setup</button><button type=\"button\">Cash flow</button><button type=\"button\">Scenarios</button><button type=\"button\">Device library</button></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:.375rem;background:var(--navy, oklch(31% .041 218));color:oklch(92% .015 172);padding:2rem 1rem 1.25rem;font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);}.ds-nav button{display:inline-flex;align-items:center;justify-content:start;min-block-size:2.75rem;padding:.55rem 1rem;border:1px solid transparent;border-radius:.375rem;background:transparent;color:inherit;font-family:inherit;font-size:.875rem;font-weight:500;line-height:1.35;cursor:pointer;}.ds-nav button[aria-current=\"page\"]{background:color-mix(in oklch,var(--navy, oklch(31% .041 218)),white 12%);color:var(--white, oklch(100% 0 none));}.ds-nav button:focus-visible{outline:3px solid var(--teal-light, oklch(69% .065 170));outline-offset:3px;}.ds-nav button:active{filter:brightness(.9);}@media(hover:hover) and (pointer:fine){.ds-nav button:hover{background:color-mix(in oklch,var(--navy, oklch(31% .041 218)),white 12%);}}@media(prefers-reduced-motion:no-preference){.ds-nav button{transition:background-color 160ms ease-out,filter 160ms ease-out;}}@media(width < 49rem){.ds-nav{flex-direction:row;gap:.25rem;overflow-x:auto;padding:.25rem;}.ds-nav button{inline-size:auto;flex:none;padding-inline:.85rem;font-size:.75rem;}}"
+    },
+    {
+      "name": "Study tag",
+      "kind": "chip",
+      "refersTo": "study-tag",
+      "description": "Noninteractive provenance label for the current assumptions.",
+      "html": "<span class=\"ds-study-tag\">Synthetic example</span>",
+      "css": ".ds-study-tag{display:inline-block;padding:.3rem .6rem;font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:.6875rem;line-height:1.5;color:var(--teal, oklch(46% .075 171));background:var(--tint, oklch(93% .017 160));border-radius:.25rem;white-space:nowrap;}"
+    },
+    {
+      "name": "Work panel",
+      "kind": "card",
+      "refersTo": "form-panel",
+      "description": "Flat, ruled work surface with fluid internal padding.",
+      "html": "<section class=\"ds-panel\"><h2>Vessel &amp; acquisition</h2><p>Define the asset and the cash needed at purchase. All amounts are in USD.</p></section>",
+      "css": ".ds-panel{background:var(--paper, oklch(99.5% .003 135));color:var(--ink, oklch(29% .035 214));border:1px solid var(--line-soft, oklch(90% .012 165));border-radius:var(--radius,.75rem);padding:clamp(1.125rem,2.4vw,2rem);font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;}.ds-panel h2{margin:0;font-size:1.1875rem;line-height:1.3;letter-spacing:-.012em;font-weight:650;text-wrap:balance;}.ds-panel p{margin:.45rem 0 0;max-inline-size:72ch;color:var(--muted, oklch(47% .025 207));font-size:.8125rem;}"
+    },
+    {
+      "name": "Ruled study summary",
+      "kind": "custom",
+      "refersTo": "study-summary",
+      "description": "Label/value pairs with an ink rule for the funding total; dashes show a preview without invented financial results.",
+      "html": "<dl class=\"ds-summary\"><div><dt>Initial uses</dt><dd>—</dd></div><div><dt>Loan at purchase</dt><dd>—</dd></div><div class=\"ds-total\"><dt>Initial equity</dt><dd>—</dd></div></dl>",
+      "css": ".ds-summary{margin:0;color:var(--ink, oklch(29% .035 214));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);line-height:1.5;}.ds-summary>div{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;border-block-start:1px solid var(--line, oklch(83% .019 165));padding-block:.8rem;}.ds-summary dt{font-size:.75rem;color:var(--muted, oklch(47% .025 207));}.ds-summary dd{margin:0;font-size:1.0625rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:end;}.ds-summary .ds-total{border-block-start-color:var(--ink, oklch(29% .035 214));}.ds-summary .ds-total dt{color:var(--ink, oklch(29% .035 214));font-weight:600;}@media(width < 68rem){.ds-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));column-gap:1.5rem;}.ds-summary>div{align-items:start;flex-direction:column;gap:.2rem;}}"
+    },
+    {
+      "name": "Financial table",
+      "kind": "custom",
+      "refersTo": "financial-table",
+      "description": "Captioned, ruled data with local horizontal scroll and a current-basis state.",
+      "html": "<div class=\"ds-table-scroll\" tabindex=\"0\" role=\"region\" aria-label=\"Return comparison\"><table class=\"ds-table\"><caption>Return comparison</caption><thead><tr><th scope=\"col\">Basis</th><th scope=\"col\">IRR</th><th scope=\"col\">NPV</th><th scope=\"col\">Multiple</th></tr></thead><tbody><tr class=\"ds-current\"><th scope=\"row\">Investor net</th><td>—</td><td>—</td><td>—</td></tr><tr><th scope=\"row\">Asset cash flow</th><td>—</td><td>—</td><td>—</td></tr></tbody></table></div>",
+      "css": ".ds-table-scroll{overflow-x:auto;border:1px solid var(--line-soft, oklch(90% .012 165));border-radius:.5rem;background:var(--paper, oklch(99.5% .003 135));scrollbar-width:thin;}.ds-table-scroll:focus-visible{outline:3px solid var(--teal, oklch(46% .075 171));outline-offset:2px;}.ds-table{inline-size:100%;border-collapse:collapse;color:var(--ink, oklch(29% .035 214));font-family:var(--font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif);font-size:.75rem;line-height:1.5;font-variant-numeric:tabular-nums;text-align:end;}.ds-table caption{text-align:start;padding:.9rem 1rem;font-weight:600;background:var(--paper, oklch(99.5% .003 135));}.ds-table th,.ds-table td{padding:.8rem 1rem;border-block-end:1px solid var(--line-soft, oklch(90% .012 165));white-space:nowrap;}.ds-table th{font-weight:600;}.ds-table thead th{background:var(--tint, oklch(93% .017 160));color:var(--muted, oklch(47% .025 207));font-size:.6875rem;}.ds-table thead th:first-child,.ds-table tbody th{text-align:start;}.ds-table tbody tr:last-child>*{border-block-end:0;}.ds-table .ds-current>*{background:color-mix(in oklch,var(--teal, oklch(46% .075 171)) 7%,var(--paper, oklch(99.5% .003 135)));font-weight:600;}@media(hover:hover) and (pointer:fine){.ds-table tbody tr:hover>*{background:color-mix(in oklch,var(--tint, oklch(93% .017 160)),var(--paper, oklch(99.5% .003 135)) 50%);}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Shipping manifest",
+    "overview": "The Shipping manifest world makes financial work feel like a clear, ruled working document. Navy navigation frames a mist-green canvas and warm-white work areas. Teal identifies actions and selection; compact system typography keeps attention on assumptions and their consequences.\n\nThe interface is dense enough for analysis while keeping labels, units, help and values separate. Conventional controls, restrained borders and tabular quantities carry the identity. The shipped visual assets are authored inline SVG marks, icons and financial geometry; there are no shipping raster assets or external font dependencies.",
+    "keyCharacteristics": [
+      "Ruled source-and-use pairs and aligned financial quantities.",
+      "Warm-white work areas within a quiet green canvas.",
+      "Conventional controls, explicit units and plain English.",
+      "Intrinsic wrapping with local scrolling for wide financial data."
+    ],
+    "rules": [
+      {
+        "name": "The Meaningful Color Rule",
+        "body": "Use teal for actions, selection and distributions; use warning ochre for contributions and cautions, and danger red for validation or negative table values. Keep explanatory text beside color-coded states.",
+        "section": "colors"
+      },
+      {
+        "name": "The Numeric Alignment Rule",
+        "body": "Use tabular numerals for financial quantities and right-align comparable table values. Preserve signs, currency and the stated cash-flow basis.",
+        "section": "typography"
+      },
+      {
+        "name": "The Local Scroll Rule",
+        "body": "Let forms and summaries wrap to the available width. Preserve wide financial tables and chart geometry in their own keyboard-focusable scrolling regions.",
+        "section": "layout"
+      },
+      {
+        "name": "The Flat Work Surface Rule",
+        "body": "Keep work panels, tables and summaries flat. Reserve shadows for the toast and modal dialog.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use sentence-case labels, visible units and specific help that explains how an assumption affects the model.",
+      "Do pair invalid fields with written errors and keep unavailable results explicit.",
+      "Do preserve semantic tables, captions, scoped headers and a text equivalent for the chart.",
+      "Do use authored SVG icons with visible action labels or an accessible name for icon-only controls.",
+      "Do keep selected states, keyboard focus and storage feedback visible."
+    ],
+    "donts": [
+      "Don't introduce decorative imagery, marketing claims or ornamental display typography into this working interface.",
+      "Don't shrink the whole page to fit wide financial tables; keep horizontal scrolling local to the data region.",
+      "Don't replace actual financial states with a generic success score or a color-only investment verdict.",
+      "Don't add card shadows or animated chart entrances to the flat working surfaces."
+    ]
+  }
+}

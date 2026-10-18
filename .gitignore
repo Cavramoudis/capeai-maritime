@@ -1,0 +1,15 @@
+node_modules/
+dist/
+tmp/
+.DS_Store
+.impeccable/questions/
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/seed-output.txt
+.impeccable/decision.json
+.env
+.env.*
+!.env.example
+*.log
+__pycache__/
+*.pyc

@@ -1,0 +1,17 @@
+{
+  "name": "capeai-maritime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Device-first vessel acquisition and investment calculator",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "node scripts/build.mjs && node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check src/app.mjs && node --check src/model.mjs && node --check src/studies.mjs && node --check src/exports.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:release": "node scripts/check-release.mjs"
+  }
+}

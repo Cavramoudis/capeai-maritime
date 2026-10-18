@@ -1,2 +1,2 @@
-# emmaplatform.com
+# capeai.com
 Maritime financial investment platform 

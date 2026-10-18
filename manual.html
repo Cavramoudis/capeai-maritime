@@ -1,0 +1,423 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="CapeAI vessel investment calculator — User &amp; model manual"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>User &amp; model manual · CapeAI</title><link rel="stylesheet" href="manual.css"></head><body><a class="skip" href="#content">Skip to manual</a><header><strong>CAPEAI / REFERENCE</strong><nav aria-label="Documentation"><a href="index.html">Back to calculator</a><a href="manual.html" aria-current="page">User & model manual</a><a href="glossary.html">Glossary</a><a href="current-system.html">Original system</a><a href="target-system.html">Target system</a><a href="model-contract.html">Model contract</a><a href="references.html">Sources</a><a href="manual.pdf" download>Download PDF</a></nav></header><main class="document"><aside><details><summary>On this page</summary><div><a href="#contents">Contents</a><a href="#1-purpose-and-interpretation">1. Purpose and interpretation</a><a href="#2-complete-a-study">2. Complete a study</a><a href="#3-units-signs-and-timing">3. Units, signs, and timing</a><a href="#4-input-register">4. Input register</a><a href="#5-equations-and-model-sequence">5. Equations and model sequence</a><a href="#6-worked-examples">6. Worked examples</a><a href="#7-saving-importing-and-sharing">7. Saving, importing, and sharing</a><a href="#8-local-operation">8. Local operation</a><a href="#9-errors-and-unavailable-results">9. Errors and unavailable results</a><a href="#10-limits-and-analyst-checks">10. Limits and analyst checks</a><a href="#11-implementation-reference">11. Implementation reference</a><a href="#12-editorial-verification">12. Editorial verification</a></div></details></aside><article id="content"><h1 id="capeai-user-and-financial-model-manual">CapeAI user and financial-model manual</h1>
+<p><strong>Model version:</strong> 1.0.0.   <strong>Study schema:</strong> 1.   <strong>Date:</strong> 18 October 2026.   <strong>Scope:</strong> one vessel, one fixed-rate loan, annual cash flows, USD.</p>
+<p>This manual describes the rebuilt calculation engine. <a href="current-system.html">Current system</a> preserves the original application&#39;s behavior and defects.</p>
+<p>The writing follows an STE-inspired editorial target. It does not claim ASD-STE100 certification or formal conformity.</p>
+<h2 id="contents">Contents</h2>
+<ol><li><a href="#1-purpose-and-interpretation">Purpose and interpretation</a></li><li><a href="#2-complete-a-study">Complete a study</a></li><li><a href="#3-units-signs-and-timing">Units, signs, and timing</a></li><li><a href="#4-input-register">Input register</a></li><li><a href="#5-equations-and-model-sequence">Equations and model sequence</a></li><li><a href="#6-worked-examples">Worked examples</a></li><li><a href="#7-saving-importing-and-sharing">Saving, importing, and sharing</a></li><li><a href="#8-local-operation">Local operation</a></li><li><a href="#9-errors-and-unavailable-results">Errors and unavailable results</a></li><li><a href="#10-limits-and-analyst-checks">Limits and analyst checks</a></li><li><a href="#11-implementation-reference">Implementation reference</a></li><li><a href="#12-editorial-verification">Editorial verification</a></li></ol>
+<p>The <a href="glossary.html">glossary</a> defines the project&#39;s terminology. <a href="references.html">References</a> identifies the primary sources and their scope.</p>
+<h2 id="1-purpose-and-interpretation">1. Purpose and interpretation</h2>
+<p>CapeAI calculates the cash consequences of a vessel investment. It connects acquisition, operations, debt, fees, tax assumptions, and disposal.</p>
+<p>The tool answers three related questions:</p>
+<ul><li>What cash does the vessel generate before financing?</li><li>What cash do equity investors contribute and receive?</li><li>Which years require more funding under the entered assumptions?</li></ul>
+<p>The tool does not estimate market prices or predict charter rates. Its example contains illustrative assumptions, not current market observations.</p>
+<h3 id="1-1-separate-the-asset-from-its-financing">1.1 Separate the asset from its financing</h3>
+<p>Asset cash flow measures the investment before borrowing. Equity cash flow measures the investor&#39;s remaining cash after financing payments.</p>
+<p>Debt reduces initial equity funding. It also creates interest, principal, and maturity payments.</p>
+<p>Higher equity IRR does not establish lower risk. A financing structure can increase both the return percentage and cash shortfalls.</p>
+<p>Use the asset discount rate for asset cash flows. Use the equity discount rate for investor cash flows.</p>
+<p>This separation follows the valuation principles in Damodaran&#39;s <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/lectures/approach.html" rel="noopener noreferrer">Approaches to Valuation</a>.</p>
+<h3 id="1-2-read-npv-irr-and-funding-together">1.2 Read NPV, IRR, and funding together</h3>
+<p>NPV measures discounted value after the investment cost. Positive NPV means the entered cash flows exceed the entered required return.</p>
+<p>IRR reports a percentage return for a valid cash-flow pattern. It does not show the investment&#39;s absolute dollar value.</p>
+<p>The equity multiple reports distributions per dollar contributed. It does not account for payment timing.</p>
+<p>Additional equity reports modeled funding needs after acquisition. A positive lifetime profit can coexist with substantial interim funding needs.</p>
+<p>The discount rates are assumptions. CapeAI does not derive a cost of capital or certify an acceptable investment hurdle.</p>
+<p>Damodaran&#39;s <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/lectures/cbcert.html" rel="noopener noreferrer">Capital Budgeting under Certainty</a> discusses these differences and IRR limitations.</p>
+<h2 id="2-complete-a-study">2. Complete a study</h2>
+<p>The interface separates assumption entry, result inspection, and study management.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Navigation item</th><th scope="col">Use it to</th></tr></thead><tbody><tr><th scope="row">Study setup</th><td>Enter and revise the investment assumptions.</td></tr><tr><th scope="row">Cash flow</th><td>Reconcile annual operations, financing, exit, and investor returns.</td></tr><tr><th scope="row">Scenarios</th><td>Compare charter-rate changes with the current study.</td></tr><tr><th scope="row">Device library</th><td>Open named studies, create a blank study, load the example, or import JSON.</td></tr><tr><th scope="row">Manual &amp; equations</th><td>Open this reference and download the manual PDF.</td></tr></tbody></table></div>
+<p>Study setup contains Acquisition, Operations, Financing, and Exit &amp; returns tabs.</p>
+<h3 id="2-1-start-and-identify-the-investment">2.1 Start and identify the investment</h3>
+<ol><li>Open Device library.</li><li>Select New blank study or Load example.</li><li>Open Study setup.</li><li>Select Acquisition.</li><li>Enter a study name.</li><li>Enter the purchase price.</li><li>Set the holding period.</li><li>Enter acquisition transaction costs.</li><li>Enter initial working capital.</li><li>Open Vessel details &amp; study notes.</li><li>Enter the vessel&#39;s identifying details.</li><li>Record the source and date of your assumptions in the notes.</li></ol>
+<p>The blank study contains no invented purchase price or operating forecast. Results remain unavailable until the required inputs are valid.</p>
+<h3 id="2-2-build-the-forecast">2.2 Build the forecast</h3>
+<ol><li>Select Operations.</li><li>Enter the base daily charter rate.</li><li>Enter base earning days.</li><li>Enter daily operating costs.</li><li>Enter annual cost days.</li><li>Enter operating-cost inflation.</li><li>Enter brokerage and management fees.</li><li>Add annual charter assumptions where the base forecast differs.</li><li>Add each survey or capital payment to its payment year.</li></ol>
+<p>A zero charter rate or zero earning days produces zero revenue. An absent annual row uses the base charter assumptions.</p>
+<p>An annual row replaces both the rate and earning-day assumptions for that year. It does not add extra revenue.</p>
+<p>In Operations, use Add year override for an annual charter exception. Use Add capital cost for a dated payment.</p>
+<p>If you shorten the holding period, review rows beyond the new exit year. Remove or move those rows deliberately.</p>
+<p>The removal action names your selected holding year, such as Remove rows after Year 3.</p>
+<p>It deletes all affected rows without another confirmation. It does not move their cash flows into another year.</p>
+<h3 id="2-3-define-financing-and-exit">2.3 Define financing and exit</h3>
+<ol><li>Select Financing.</li><li>Enter the debt percentage of purchase price.</li><li>Enter the fixed annual interest rate.</li><li>Enter the loan tenor.</li><li>Enter the balloon percentage of initial debt.</li><li>Enter the debt arrangement fee.</li><li>Select Exit &amp; returns.</li><li>Select the terminal-value method.</li><li>Enter the selected method&#39;s assumptions.</li><li>Enter disposal costs.</li><li>Enter the carry percentage.</li><li>Set the asset and equity discount rates.</li></ol>
+<p>Set debt to zero for an all-equity acquisition. There is no automatic refinancing after maturity.</p>
+<h3 id="2-4-apply-tax-assumptions-deliberately">2.4 Apply tax assumptions deliberately</h3>
+<ol><li>Select Exit &amp; returns.</li><li>Enter the modeled tax rate.</li><li>Enter annual tax depreciation.</li><li>Select whether positive disposal gains enter taxable income.</li><li>Check the tax assumptions against the intended investment structure.</li></ol>
+<p>The default tax rate is zero. This is a blank assumption, not a statement that the investment is tax-exempt.</p>
+<p>Tax treatment requires an independent jurisdiction-specific assessment. The exact simplified formula appears in Section 5.5.</p>
+<h3 id="2-5-inspect-the-results">2.5 Inspect the results</h3>
+<ol><li>Open Cash flow.</li><li>Reconcile initial debt and equity to acquisition uses.</li><li>Inspect each year&#39;s charter revenue.</li><li>Check CAPEX payment years.</li><li>Inspect the loan maturity payment.</li><li>Inspect the exit-year debt settlement.</li><li>Read each additional-equity warning.</li><li>Compare asset and investor returns.</li><li>Open Scenarios.</li><li>Inspect lower charter-rate cases.</li><li>Export the completed study.</li></ol>
+<p>Do not approve an investment from its headline IRR alone. Review its assumptions, downside cash needs, and terminal-value dependence.</p>
+<h2 id="3-units-signs-and-timing">3. Units, signs, and timing</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Item</th><th scope="col">Convention</th></tr></thead><tbody><tr><th scope="row">Currency</th><td>All monetary inputs and outputs use USD.</td></tr><tr><th scope="row">Daily amounts</th><td>Charter and operating rates use USD/day.</td></tr><tr><th scope="row">Scrap rate</th><td>USD per metric tonne of light displacement.</td></tr><tr><th scope="row">Percentage input</th><td>Enter <code>7</code> for 7%, not <code>0.07</code>.</td></tr><tr><th scope="row">Equation percentage</th><td>Divide each percentage input by 100.</td></tr><tr><th scope="row">Holding period</th><td>Whole years from 1 through 30.</td></tr><tr><th scope="row">Loan tenor</th><td>Whole years from 1 through 30.</td></tr><tr><th scope="row">Time zero</th><td>Acquisition funding and year-zero CAPEX.</td></tr><tr><th scope="row">Later cash flows</th><td>End of each model year.</td></tr><tr><th scope="row">Positive investor cash</th><td>A distribution to investors.</td></tr><tr><th scope="row">Negative investor cash</th><td>A contribution from investors.</td></tr><tr><th scope="row">Expense columns</th><td>Positive amounts that the cash-flow equation subtracts.</td></tr><tr><th scope="row">Maximum annual days</th><td>365; leap years are not modeled.</td></tr><tr><th scope="row">Display rounding</th><td>Presentation rounding only; the engine retains numerical precision.</td></tr></tbody></table></div>
+<p>Every charter row represents that future year&#39;s nominal rate. OPEX inflation does not automatically increase charter rates, management fees, CAPEX, or terminal value.</p>
+<p>All annual amounts are netted at year end. The model cannot reveal a cash shortfall within a year.</p>
+<p>Debt interest uses the year&#39;s opening debt balance. Principal repayments occur after that year&#39;s interest calculation.</p>
+<p>The exit occurs after operating cash flow, scheduled principal, and any maturity payment in the final year.</p>
+<p>Initial working capital remains committed throughout the holding period. The model releases the same amount at exit.</p>
+<p>It does not spend this working capital to absorb interim losses. Negative annual investor cash still requires a separate equity contribution.</p>
+<h2 id="4-input-register">4. Input register</h2>
+<p>The field paths below also identify values in the exported study JSON. Technical bounds prevent unsupported calculations; they do not establish commercial plausibility.</p>
+<p>Text must not contain unsupported control characters or incomplete Unicode characters. Normal tabs, line breaks, and complete Unicode characters are permitted.</p>
+<h3 id="4-1-identification-and-acquisition">4.1 Identification and acquisition</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Field</th><th scope="col">Meaning</th><th scope="col">Unit or limit</th></tr></thead><tbody><tr><th scope="row"><code>schemaVersion</code></th><td>Study data structure</td><td>Must equal <code>1</code>.</td></tr><tr><th scope="row"><code>name</code></th><td>Study name</td><td>Text, maximum 200 characters.</td></tr><tr><th scope="row"><code>notes</code></th><td>Assumption sources and analyst notes</td><td>Text, maximum 10,000 characters.</td></tr><tr><th scope="row"><code>vessel.name</code></th><td>Vessel name</td><td>Text, maximum 200 characters.</td></tr><tr><th scope="row"><code>vessel.type</code></th><td>Vessel type</td><td>Text, maximum 200 characters.</td></tr><tr><th scope="row"><code>vessel.builtYear</code></th><td>Descriptive build year</td><td>Whole number, 0–2200; 0 can mean unspecified.</td></tr><tr><th scope="row"><code>vessel.deadweight</code></th><td>Descriptive deadweight tonnage</td><td>Tonnes, 0–1,000,000.</td></tr><tr><th scope="row"><code>vessel.ldt</code></th><td>Light displacement for scrap calculation</td><td>Tonnes, 0–1,000,000.</td></tr><tr><th scope="row"><code>acquisition.price</code></th><td>Vessel purchase price</td><td>USD, 0.01–1,000,000,000,000.</td></tr><tr><th scope="row"><code>acquisition.transactionCosts</code></th><td>Initial transaction costs</td><td>USD, 0–1,000,000,000,000.</td></tr><tr><th scope="row"><code>acquisition.workingCapital</code></th><td>Initial funding released at exit</td><td>USD, 0–1,000,000,000,000.</td></tr></tbody></table></div>
+<p>Name, type, build year, and deadweight do not change returns. LDT changes returns only when scrap mode sets the terminal value.</p>
+<h3 id="4-2-financing-and-projection">4.2 Financing and projection</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Field</th><th scope="col">Meaning</th><th scope="col">Unit or limit</th></tr></thead><tbody><tr><th scope="row"><code>financing.ltvPct</code></th><td>Initial debt as a percentage of purchase price</td><td>0–100%.</td></tr><tr><th scope="row"><code>financing.interestPct</code></th><td>Fixed annual interest on opening debt</td><td>0–100%.</td></tr><tr><th scope="row"><code>financing.tenorYears</code></th><td>Year of full loan maturity</td><td>Whole years, 1–30.</td></tr><tr><th scope="row"><code>financing.balloonPct</code></th><td>Initial debt fraction excluded from regular amortization</td><td>0–100%.</td></tr><tr><th scope="row"><code>financing.arrangementFeePct</code></th><td>Fee on initial debt draw</td><td>0–100%.</td></tr><tr><th scope="row"><code>projection.holdYears</code></th><td>Year of vessel disposal</td><td>Whole years, 1–30.</td></tr><tr><th scope="row"><code>projection.assetDiscountPct</code></th><td>Required return for asset NPV</td><td>0–100% annually.</td></tr><tr><th scope="row"><code>projection.equityDiscountPct</code></th><td>Required return for equity NPVs</td><td>0–100% annually.</td></tr></tbody></table></div>
+<p>Debt funds only its specified percentage of purchase price. Transaction costs, working capital, CAPEX, and loan fees increase the remaining equity requirement.</p>
+<h3 id="4-3-operations-and-schedules">4.3 Operations and schedules</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Field</th><th scope="col">Meaning</th><th scope="col">Unit or limit</th></tr></thead><tbody><tr><th scope="row"><code>operations.dailyOpex</code></th><td>First-year operating cost per cost day</td><td>USD/day, 0–100,000,000.</td></tr><tr><th scope="row"><code>operations.opexDays</code></th><td>Annual days that accrue operating cost</td><td>Whole days, 0–365.</td></tr><tr><th scope="row"><code>operations.inflationPct</code></th><td>Annual OPEX change after year one</td><td>−100–100%.</td></tr><tr><th scope="row"><code>operations.baseDailyRate</code></th><td>Charter rate when no annual override exists</td><td>USD/day, 0–100,000,000.</td></tr><tr><th scope="row"><code>operations.baseRevenueDays</code></th><td>Earning days when no annual override exists</td><td>Whole days, 0–365.</td></tr><tr><th scope="row"><code>operations.brokeragePct</code></th><td>Percentage of gross charter revenue</td><td>0–100%.</td></tr><tr><th scope="row"><code>operations.managementFeePct</code></th><td>Annual percentage of original purchase price</td><td>0–100%.</td></tr><tr><th scope="row"><code>charter[].year</code></th><td>Year to override</td><td>Whole year, 1 through holding period.</td></tr><tr><th scope="row"><code>charter[].dailyRate</code></th><td>Override daily charter rate</td><td>USD/day, 0–100,000,000.</td></tr><tr><th scope="row"><code>charter[].revenueDays</code></th><td>Override earning days</td><td>Whole days, 0–365.</td></tr><tr><th scope="row"><code>capex[].year</code></th><td>Year of capital payment</td><td>Whole year, 0 through holding period.</td></tr><tr><th scope="row"><code>capex[].amount</code></th><td>Capital payment</td><td>USD, 0–1,000,000,000,000.</td></tr><tr><th scope="row"><code>capex[].label</code></th><td>Payment description</td><td>Text, maximum 200 characters.</td></tr></tbody></table></div>
+<p>Each charter year can appear once. Several CAPEX payments may occur in the same year; the engine adds them.</p>
+<p>The engine and native importer accept at most 30 charter rows and 300 CAPEX rows.</p>
+<p>OPEX and earning days are independent assumptions. Reduced earning days do not automatically reduce operating costs.</p>
+<p>Avoid double counting technical management costs. Enter them in daily OPEX or the separate management fee according to their actual contractual basis.</p>
+<h3 id="4-4-exit-tax-and-carry">4.4 Exit, tax, and carry</h3>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Field</th><th scope="col">Meaning</th><th scope="col">Unit or limit</th></tr></thead><tbody><tr><th scope="row"><code>exit.mode</code></th><td>Terminal-value method</td><td><code>depreciation</code>, <code>manual</code>, or <code>scrap</code>.</td></tr><tr><th scope="row"><code>exit.depreciationPct</code></th><td>Annual decline used only by declining-value exit</td><td>0–100%.</td></tr><tr><th scope="row"><code>exit.manualValue</code></th><td>Gross vessel sale value for manual exit</td><td>USD, 0–1,000,000,000,000.</td></tr><tr><th scope="row"><code>exit.scrapPerTon</code></th><td>Scrap price applied to LDT</td><td>USD/tonne, 0–100,000,000.</td></tr><tr><th scope="row"><code>exit.disposalCostPct</code></th><td>Selling costs on gross terminal value</td><td>0–100%.</td></tr><tr><th scope="row"><code>tax.ratePct</code></th><td>Simplified annual tax rate</td><td>0–100%.</td></tr><tr><th scope="row"><code>tax.annualDepreciationPct</code></th><td>Annual declining-balance tax depreciation</td><td>0–100%.</td></tr><tr><th scope="row"><code>tax.taxSaleGain</code></th><td>Include positive sale gains in final-year taxable income</td><td><code>true</code> or <code>false</code>.</td></tr><tr><th scope="row"><code>carry.ratePct</code></th><td>Sponsor share of positive aggregate nominal equity profit</td><td>0–100%.</td></tr></tbody></table></div>
+<p>Exit-value decline and tax depreciation are separate inputs. Neither is an appraisal or an automatic tax-law assumption.</p>
+<p>Inactive exit fields remain in the study. Only the selected exit mode determines gross terminal value.</p>
+<h2 id="5-equations-and-model-sequence">5. Equations and model sequence</h2>
+<h3 id="5-1-symbols">5.1 Symbols</h3>
+<p>All currency variables below use USD unless another unit is stated. Rates in equations are decimal fractions.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Symbol</th><th scope="col">Definition</th></tr></thead><tbody><tr><th scope="row"><code>t</code>, <code>H</code>, <code>T</code></th><td>Current year, holding years, loan tenor years.</td></tr><tr><th scope="row"><code>P</code>, <code>X</code>, <code>W</code></th><td>Purchase price, transaction costs, initial working capital.</td></tr><tr><th scope="row"><code>K_t</code></th><td>Sum of CAPEX paid at time <code>t</code>.</td></tr><tr><th scope="row"><code>λ</code>, <code>i</code>, <code>b</code>, <code>a</code></th><td>Debt fraction, interest rate, balloon fraction, arrangement-fee rate.</td></tr><tr><th scope="row"><code>D_0</code>, <code>E_0</code></th><td>Initial debt and equity funding.</td></tr><tr><th scope="row"><code>F_D</code></th><td>Initial debt arrangement fee.</td></tr><tr><th scope="row"><code>h_t</code>, <code>e_t</code></th><td>Charter rate in USD/day and earning days in year <code>t</code>.</td></tr><tr><th scope="row"><code>o</code>, <code>d_o</code>, <code>g</code></th><td>First-year daily OPEX, annual cost days, OPEX inflation.</td></tr><tr><th scope="row"><code>β</code>, <code>m</code>, <code>c</code></th><td>Brokerage rate, annual management-fee rate, carry rate.</td></tr><tr><th scope="row"><code>R_t</code>, <code>O_t</code>, <code>B_t</code>, <code>M_t</code></th><td>Revenue, OPEX, brokerage, management fee.</td></tr><tr><th scope="row"><code>S_t</code></th><td>Operating surplus after brokerage and management.</td></tr><tr><th scope="row"><code>L_t</code>, <code>I_t</code></th><td>Opening debt and annual interest.</td></tr><tr><th scope="row"><code>A</code>, <code>A_t</code></th><td>Scheduled annual principal amount and actual scheduled payment.</td></tr><tr><th scope="row"><code>J_t</code>, <code>Q_t</code></th><td>Maturity principal and additional exit debt settlement.</td></tr><tr><th scope="row"><code>V</code>, <code>s</code>, <code>N</code></th><td>Gross terminal value, disposal-cost rate, net sale cash.</td></tr><tr><th scope="row"><code>δ</code>, <code>q</code>, <code>ℓ</code></th><td>Exit-value decline rate, scrap price per tonne, vessel LDT.</td></tr><tr><th scope="row"><code>τ</code>, <code>p</code>, <code>TB_t</code>, <code>Dep_t</code></th><td>Tax rate, tax-depreciation rate, closing tax book, tax depreciation.</td></tr><tr><th scope="row"><code>G_t</code></th><td>Positive taxable sale gain, if enabled.</td></tr><tr><th scope="row"><code>TaxA_t</code>, <code>TaxE_t</code>, <code>TaxF_t</code></th><td>Asset tax, equity tax, and pre-annual-fee equity tax.</td></tr><tr><th scope="row"><code>Z_t</code></th><td>Net sale cash plus working-capital release.</td></tr><tr><th scope="row"><code>ACF_t</code>, <code>FCF_t</code>, <code>PCF_t</code>, <code>ECF_t</code></th><td>Asset, pre-annual-fee equity, pre-carry equity, and final investor cash flow.</td></tr><tr><th scope="row"><code>C</code></th><td>Total carry paid in the final year.</td></tr><tr><th scope="row"><code>r_A</code>, <code>r_E</code></th><td>Asset and equity discount rates.</td></tr></tbody></table></div>
+<h3 id="5-2-acquisition-funding">5.2 Acquisition funding</h3>
+<pre><code>K_0 = sum of all CAPEX entries assigned to year 0
+D_0 = P × λ
+F_D = D_0 × a
+Asset uses = P + X + W + K_0
+Total initial uses = P + X + W + K_0 + F_D
+E_0 = Total initial uses − D_0</code></pre>
+<p>The initial funding identity is:</p>
+<pre><code>Initial debt + Initial equity = Total initial uses</code></pre>
+<p>The asset stream excludes the financing arrangement fee. All equity streams include that fee in initial equity.</p>
+<h3 id="5-3-annual-revenue-costs-and-fees">5.3 Annual revenue, costs, and fees</h3>
+<p>For an overridden year, use its entered <code>h_t</code> and <code>e_t</code>. Otherwise, use the base rate and base earning days.</p>
+<pre><code>R_t = h_t × e_t
+O_t = o × d_o × (1 + g)^(t − 1)
+B_t = R_t × β
+M_t = P × m
+S_t = R_t − O_t − B_t − M_t
+K_t = sum of CAPEX entries assigned to year t</code></pre>
+<p>Year one has no OPEX inflation uplift. Year two applies one uplift; year three applies two.</p>
+<p>Management fees use original purchase price every year. They do not decline with debt or terminal value.</p>
+<p>CAPEX is a cash payment when scheduled. The model does not spread that payment across the holding period.</p>
+<h3 id="5-4-debt-and-terminal-value">5.4 Debt and terminal value</h3>
+<p>The regular principal schedule is equal-principal amortization, not an annuity payment.</p>
+<pre><code>A = D_0 × (1 − b) / T
+L_1 = D_0
+I_t = L_t × i
+A_t = min(L_t, A), when t ≤ T; otherwise 0
+Debt after scheduled principal = max(0, L_t − A_t)
+J_t = Debt after scheduled principal, when t = T; otherwise 0
+Debt after maturity payment = max(0, L_t − A_t − J_t)
+Q_t = Debt after maturity payment, when t = H; otherwise 0
+Closing debt = max(0, L_t − A_t − J_t − Q_t)
+L_(t+1) = Closing debt
+Total principal_t = A_t + J_t + Q_t
+Total debt service_t = I_t + A_t + J_t + Q_t</code></pre>
+<p>The sale payment <code>Q_t</code> is additional to scheduled principal. If maturity occurs at exit, <code>J_t</code> already clears the balance.</p>
+<p>If maturity precedes exit, later debt and interest are zero. The model does not insert a replacement loan.</p>
+<p>Gross terminal value follows the selected mode:</p>
+<pre><code>Declining-value mode: V = P × (1 − δ)^H
+Manual mode:          V = entered manual value
+Scrap mode:           V = ℓ × q
+Disposal costs = V × s
+N = V − Disposal costs</code></pre>
+<p>Terminal value is a sale assumption, not a perpetuity. Transaction costs and later CAPEX do not automatically increase it.</p>
+<p>Net sale cash is calculated before debt settlement and tax. The annual cash-flow equations deduct those items separately.</p>
+<h3 id="5-5-simplified-tax">5.5 Simplified tax</h3>
+<p>The initial tax book includes purchase price, transaction costs, and initial CAPEX. It excludes working capital and the loan arrangement fee.</p>
+<pre><code>TB_0 = P + X + K_0
+Dep_t = TB_(t−1) × p
+TB_t = max(0, TB_(t−1) − Dep_t) + K_t
+G_H = max(0, N − TB_H), when sale-gain taxation is enabled
+G_t = 0 in every other case
+TaxA_t = τ × max(0, S_t − Dep_t + G_t)
+TaxE_t = τ × max(0, S_t − I_t − Dep_t + G_t)
+TaxF_t = τ × max(0, R_t − O_t − I_t − Dep_t + G_t)</code></pre>
+<p>Annual CAPEX enters the tax book after that year&#39;s depreciation. It begins depreciating in the following year.</p>
+<p>Asset tax excludes the interest deduction. Equity tax includes it.</p>
+<p>The pre-annual-fee stream removes brokerage and management fees. Its tax must therefore be recalculated on the higher taxable operating result.</p>
+<p>A positive sale gain enters final-year taxable income. A sale below tax book does not create a modeled deductible sale loss.</p>
+<p>Within the final year, a negative operating tax base can offset a positive modeled sale gain. The final tax amount cannot be negative.</p>
+<p>There are no refunds, loss carryforwards, tax credits, tonnage taxes, VAT, withholding taxes, or investor-level taxes.</p>
+<p>Debt arrangement costs receive no tax deduction in this model. Principal repayment and working-capital release do not enter taxable income.</p>
+<p>This is an explicit screening convention. It is not a jurisdiction-specific tax calculation.</p>
+<h3 id="5-6-the-four-cash-flow-streams">5.6 The four cash-flow streams</h3>
+<p>At time zero:</p>
+<pre><code>ACF_0 = −(P + X + W + K_0)
+FCF_0 = PCF_0 = ECF_0 = −E_0</code></pre>
+<p>During operation:</p>
+<pre><code>Z_t = 0, for t &lt; H
+Z_H = N + W
+ACF_t = S_t − K_t − TaxA_t + Z_t
+FCF_t = R_t − O_t − K_t − TaxF_t − I_t − A_t − J_t − Q_t + Z_t
+PCF_t = S_t − K_t − TaxE_t − I_t − A_t − J_t − Q_t + Z_t</code></pre>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Stream</th><th scope="col">Annual fees</th><th scope="col">Debt</th><th scope="col">Carry</th><th scope="col">NPV rate</th></tr></thead><tbody><tr><th scope="row">Asset, <code>ACF</code></th><td>Included</td><td>Excluded</td><td>Excluded</td><td>Asset rate.</td></tr><tr><th scope="row">Pre-annual-fee equity, <code>FCF</code></th><td>Excluded</td><td>Included</td><td>Excluded</td><td>Equity rate.</td></tr><tr><th scope="row">Pre-carry equity, <code>PCF</code></th><td>Included</td><td>Included</td><td>Excluded</td><td>Equity rate.</td></tr><tr><th scope="row">Final investor, <code>ECF</code></th><td>Included</td><td>Included</td><td>Included</td><td>Equity rate.</td></tr></tbody></table></div>
+<p>“Pre-fees” in engine output means before annual brokerage and management fees. It still includes transaction costs, disposal costs, and debt arrangement fees.</p>
+<p>The asset stream includes the same operating management and brokerage charges as the vessel investment. It excludes investor carry and all financing effects.</p>
+<h3 id="5-7-carry">5.7 Carry</h3>
+<pre><code>Aggregate pre-carry profit = Σ PCF_t, for t = 0 through H
+C = c × max(0, Aggregate pre-carry profit)
+ECF_t = PCF_t, for t &lt; H
+ECF_H = PCF_H − C</code></pre>
+<p>The initial investment and later negative cash flows reduce the carry base. Carry is zero when aggregate pre-carry profit is zero or negative.</p>
+<p>Carry has no preferred-return hurdle, catch-up tier, investor split, escrow, or clawback model.</p>
+<p>Carry is charged at exit even if earlier distributions generated the aggregate profit. This can increase the final year&#39;s equity contribution.</p>
+<h3 id="5-8-returns-and-funding">5.8 Returns and funding</h3>
+<p>For any cash-flow stream <code>CF_t</code>, CapeAI calculates:</p>
+<pre><code>Invested capital = −Σ min(CF_t, 0), for t = 0 through H
+Distributions = Σ max(CF_t, 0), for t = 0 through H
+Nominal profit = Distributions − Invested capital
+Multiple = Distributions / Invested capital
+ROI = Nominal profit / Invested capital
+NPV(r) = Σ [CF_t / (1 + r)^t], for t = 0 through H</code></pre>
+<p>Multiple and ROI are unavailable when invested capital is zero. ROI is a total holding-period percentage, not an annual return.</p>
+<p>Asset NPV uses <code>r_A</code>. All three equity NPVs use <code>r_E</code>.</p>
+<p>IRR solves this equation:</p>
+<pre><code>0 = Σ [CF_t / (1 + IRR)^t], for t = 0 through H</code></pre>
+<p>The engine requires finite cash flows, a negative investment, and a positive distribution. It ignores zero cash flows when counting sign changes.</p>
+<p>More than one sign change produces an ambiguous status. This conservative rule does not assert that multiple roots always exist.</p>
+<p>A positive first nonzero cash flow is outside the supported investment-IRR convention. A missing valid numerical solution produces an unavailable status.</p>
+<p>The solver brackets and bisects <code>log(1 + IRR)</code>. It verifies a scaled residual before returning a rate above −100%.</p>
+<p>Annual investor funding is calculated as follows:</p>
+<pre><code>Contribution_t = max(0, −ECF_t), for t ≥ 1
+Distribution_t = max(0, ECF_t), for t ≥ 1
+Additional equity = Σ Contribution_t, for t = 1 through H
+Cumulative investor cash_t = Σ ECF_j, for j = 0 through t
+Total investor contributions = E_0 + Additional equity</code></pre>
+<p>These are gross contributions and distributions under immediate annual distribution. Earlier positive cash is not retained to offset a later deficit.</p>
+<h3 id="5-9-debt-service-coverage">5.9 Debt-service coverage</h3>
+<p>The coverage calculation excludes vessel sale proceeds and working-capital release. It also excludes sale-gain tax and carry.</p>
+<pre><code>Operating tax_t = τ × max(0, S_t − I_t − Dep_t)
+CFADS_t = S_t − K_t − Operating tax_t
+Contractual debt service_t = I_t + A_t + J_t
+DSCR_t = CFADS_t / Contractual debt service_t</code></pre>
+<p>The denominator includes the maturity balloon. It excludes debt repaid only because of early disposal.</p>
+<p>The numerator deducts actual scheduled CAPEX. It uses the operating equity-tax assumption, which includes an interest deduction.</p>
+<p>DSCR is unavailable when contractual debt service is zero. It is not displayed as infinity.</p>
+<p>A ratio below 1 means operating cash does not cover the defined contractual payments. Disposal cash may still fund the final-year payment.</p>
+<p>A lender&#39;s covenant definition can differ. Use the facility agreement for covenant compliance.</p>
+<h3 id="5-10-daily-charter-breakeven">5.10 Daily charter breakeven</h3>
+<p>The breakeven rate covers OPEX, annual fees, CAPEX, operating tax, interest, and contractual principal.</p>
+<p>It excludes early-sale debt settlement, sale proceeds, working-capital release, sale-gain tax, and carry.</p>
+<p>Define the following values for each year:</p>
+<pre><code>Cash need = K_t + I_t + A_t + J_t
+Tax shield = I_t + Dep_t
+Net revenue share = 1 − β</code></pre>
+<p>The required operating surplus is piecewise:</p>
+<pre><code>If Cash need ≤ Tax shield:
+    Required surplus = Cash need
+If Cash need &gt; Tax shield and τ &lt; 1:
+    Required surplus = (Cash need − τ × Tax shield) / (1 − τ)
+Breakeven daily rate = (O_t + M_t + Required surplus) / [e_t × (1 − β)]</code></pre>
+<p>The result is unavailable with zero earning days or 100% brokerage. It is also unavailable when 100% tax prevents finite coverage.</p>
+<p>This is a one-year cash-coverage rate. It does not recover the initial investment or achieve the equity discount rate.</p>
+<h3 id="5-11-scenarios-and-totals">5.11 Scenarios and totals</h3>
+<p>The charter sensitivity uses multipliers of 0.70, 0.85, 1.00, 1.15, and 1.30.</p>
+<pre><code>Scenario base rate = Original base rate × multiplier
+Scenario annual rate_t = Original annual rate_t × multiplier</code></pre>
+<p>Earning days, OPEX, debt terms, and other assumptions remain unchanged in this comparison. Each case runs through the full engine.</p>
+<p>Changing revenue therefore changes brokerage, taxable income, carry, funding needs, and returns where applicable.</p>
+<p>The scenarios have no assigned probabilities. A 30% reduction is a selected stress, not an estimated confidence interval.</p>
+<p>Totals sum their corresponding annual columns. Total CAPEX also includes year-zero CAPEX.</p>
+<p>Total principal must equal the original debt draw. Closing debt must be zero after the final model year.</p>
+<h2 id="6-worked-examples">6. Worked examples</h2>
+<p>All examples use invented inputs. Outputs below were calculated with model version 1.0.0.</p>
+<h3 id="6-1-all-equity-investment-profit-with-negative-npv">6.1 All-equity investment: profit with negative NPV</h3>
+<p>Use the following inputs. Set all unlisted costs, fees, tax, inflation, debt, and carry to zero.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Input</th><th scope="col">Value</th></tr></thead><tbody><tr><th scope="row">Purchase price</th><td>$10,000,000</td></tr><tr><th scope="row">Holding period</th><td>2 years</td></tr><tr><th scope="row">Daily charter rate</th><td>$10,000</td></tr><tr><th scope="row">Earning days</th><td>350</td></tr><tr><th scope="row">Daily OPEX</th><td>$6,000</td></tr><tr><th scope="row">Cost days</th><td>365</td></tr><tr><th scope="row">Manual sale value</th><td>$9,000,000</td></tr><tr><th scope="row">Asset and equity discount rates</th><td>10%</td></tr></tbody></table></div>
+<p>Annual revenue is <code>$10,000 × 350 = $3,500,000</code>. Annual OPEX is <code>$6,000 × 365 = $2,190,000</code>.</p>
+<p>Annual operating cash is $1,310,000. The year-two sale adds $9,000,000.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Time</th><th scope="col">Investor cash flow</th></tr></thead><tbody><tr><th scope="row">0</th><td>−$10,000,000</td></tr><tr><th scope="row">1</th><td>$1,310,000</td></tr><tr><th scope="row">2</th><td>$10,310,000</td></tr></tbody></table></div>
+<pre><code>NPV = −10,000,000 + 1,310,000/1.10 + 10,310,000/1.10²
+    = −$288,429.75
+IRR = 8.2992%
+Equity multiple = 11,620,000 / 10,000,000 = 1.1620×
+Nominal profit = $1,620,000
+Breakeven hire = 2,190,000 / 350 = $6,257.14/day</code></pre>
+<p>The study has positive nominal profit. It fails to earn the entered 10% required return.</p>
+<p>Asset and equity returns match because the study has no financing or carry.</p>
+<h3 id="6-2-early-sale-repay-the-actual-loan-balance">6.2 Early sale: repay the actual loan balance</h3>
+<p>Start with Example 6.1. Change the holding period to three years and manual sale value to $8 million.</p>
+<p>Set debt to 50%, interest to 6%, tenor to five years, and balloon to 40%.</p>
+<p>Retain Example 6.1&#39;s operating assumptions. Set additional costs, fees, tax, inflation, and carry to zero.</p>
+<pre><code>Initial debt = $10,000,000 × 50% = $5,000,000
+Initial equity = $5,000,000
+Annual scheduled principal = $5,000,000 × (1 − 40%) / 5 = $600,000</code></pre>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Item</th><th scope="col">Year 1</th><th scope="col">Year 2</th><th scope="col">Year 3</th></tr></thead><tbody><tr><th scope="row">Opening debt</th><td>$5,000,000</td><td>$4,400,000</td><td>$3,800,000</td></tr><tr><th scope="row">Interest</th><td>$300,000</td><td>$264,000</td><td>$228,000</td></tr><tr><th scope="row">Scheduled principal</th><td>$600,000</td><td>$600,000</td><td>$600,000</td></tr><tr><th scope="row">Additional sale settlement</th><td>$0</td><td>$0</td><td>$3,200,000</td></tr><tr><th scope="row">Closing debt</th><td>$4,400,000</td><td>$3,800,000</td><td>$0</td></tr><tr><th scope="row">Investor cash</th><td>$410,000</td><td>$446,000</td><td>$5,282,000</td></tr></tbody></table></div>
+<p>The final-year investor cash is:</p>
+<pre><code>1,310,000 − 228,000 − 600,000 − 3,200,000 + 8,000,000
+= $5,282,000</code></pre>
+<p>The original balloon assumption is $2 million. Early sale requires $3.2 million after the scheduled payment.</p>
+<p>Investor IRR is 7.6483%. Investor NPV at 10% is −$290,232.91. The equity multiple is 1.2276×.</p>
+<p>Year-three DSCR is <code>1,310,000 / 828,000 = 1.5821×</code>. It excludes both the sale proceeds and early-sale debt settlement.</p>
+<h3 id="6-3-tax-fees-capex-working-capital-and-carry">6.3 Tax, fees, CAPEX, working capital, and carry</h3>
+<p>Use a one-year holding period with these inputs:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Input</th><th scope="col">Value</th></tr></thead><tbody><tr><th scope="row">Purchase price</th><td>$1,000,000</td></tr><tr><th scope="row">Transaction costs</th><td>$20,000</td></tr><tr><th scope="row">Initial working capital</th><td>$50,000</td></tr><tr><th scope="row">Year-zero CAPEX</th><td>$30,000</td></tr><tr><th scope="row">Year-one CAPEX</th><td>$40,000</td></tr><tr><th scope="row">Debt percentage</th><td>50%</td></tr><tr><th scope="row">Interest / tenor / balloon</th><td>8% / 5 years / 20%</td></tr><tr><th scope="row">Debt arrangement fee</th><td>1%</td></tr><tr><th scope="row">Charter rate / earning days</th><td>$2,000 / 300</td></tr><tr><th scope="row">Daily OPEX / cost days</th><td>$500 / 360</td></tr><tr><th scope="row">Brokerage / management</th><td>5% / 2%</td></tr><tr><th scope="row">Manual sale value / disposal cost</th><td>$1,100,000 / 2%</td></tr><tr><th scope="row">Tax rate / tax depreciation</th><td>20% / 10%</td></tr><tr><th scope="row">Sale-gain taxation</th><td>Enabled</td></tr><tr><th scope="row">Carry</th><td>20%</td></tr><tr><th scope="row">Asset / equity discount rates</th><td>10% / 12%</td></tr></tbody></table></div>
+<p>Set inflation to zero. Acquisition funding is:</p>
+<pre><code>Debt = $500,000
+Arrangement fee = $5,000
+Asset uses = 1,000,000 + 20,000 + 50,000 + 30,000 = $1,100,000
+Initial equity = 1,100,000 + 5,000 − 500,000 = $605,000</code></pre>
+<p>Year-one operations and tax are:</p>
+<pre><code>Revenue = 2,000 × 300 = $600,000
+OPEX = 500 × 360 = $180,000
+Brokerage = 600,000 × 5% = $30,000
+Management = 1,000,000 × 2% = $20,000
+Operating surplus = 600,000 − 180,000 − 30,000 − 20,000 = $370,000
+Interest = 500,000 × 8% = $40,000
+Tax depreciation = 1,050,000 × 10% = $105,000
+Closing tax book = 1,050,000 − 105,000 + 40,000 = $985,000
+Net sale cash = 1,100,000 × 98% = $1,078,000
+Positive sale gain = 1,078,000 − 985,000 = $93,000
+Equity tax = (370,000 − 40,000 − 105,000 + 93,000) × 20% = $63,600
+Asset tax = (370,000 − 105,000 + 93,000) × 20% = $71,600</code></pre>
+<p>Scheduled principal is $80,000. Early sale settles another $420,000, so total principal is $500,000.</p>
+<pre><code>Pre-carry equity cash = 370,000 − 40,000 − 63,600 − 40,000 − 500,000 + 1,078,000 + 50,000
+                     = $854,400
+Aggregate pre-carry profit = 854,400 − 605,000 = $249,400
+Carry = 249,400 × 20% = $49,880
+Final investor cash = 854,400 − 49,880 = $804,520
+Investor IRR = 804,520 / 605,000 − 1 = 32.9785%
+Investor NPV at 12% = −605,000 + 804,520 / 1.12 = $113,321.43</code></pre>
+<p>The equation contains two $40,000 deductions. One is CAPEX; the other is interest.</p>
+<p>The asset stream is <code>[-1,100,000, 1,386,400]</code>. Its IRR is 26.0364%, with NPV of $160,363.64 at 10%.</p>
+<p>Operating tax excludes the disposal gain: <code>(370,000 − 40,000 − 105,000) × 20% = $45,000</code>.</p>
+<p>CFADS is <code>370,000 − 40,000 − 45,000 = $285,000</code>. DSCR is <code>285,000 / (40,000 + 80,000) = 2.3750×</code>.</p>
+<h3 id="6-4-the-editable-aegean-example">6.4 The editable Aegean example</h3>
+<p>The application example has a $16 million purchase price and $8 million initial debt. Its holding period and loan tenor are five years.</p>
+<p>It includes $320,000 transaction costs, $500,000 working capital, and an $80,000 loan arrangement fee. Initial equity is $8.9 million.</p>
+<p>Annual charter rates and earning days vary. Year three includes a $1 million survey payment.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Output</th><th scope="col">Expected value</th></tr></thead><tbody><tr><th scope="row">Asset IRR</th><td>16.7741%</td></tr><tr><th scope="row">Asset NPV at 8%</th><td>$5,452,348.62</td></tr><tr><th scope="row">Investor IRR after carry</th><td>19.7261%</td></tr><tr><th scope="row">Investor NPV at 12%</th><td>$2,455,196.42</td></tr><tr><th scope="row">Investor multiple</th><td>1.977831×</td></tr><tr><th scope="row">Gross terminal value</th><td>$12,380,495.00</td></tr><tr><th scope="row">Disposal costs</th><td>$247,609.90</td></tr><tr><th scope="row">Total carry</th><td>$2,175,674.14</td></tr><tr><th scope="row">Additional equity</th><td>$0.00</td></tr></tbody></table></div>
+<p>The fifth-year scheduled principal is $1.12 million. The maturity payment is another $2.4 million.</p>
+<p>Year-five operating DSCR is about 1.0058×. This near-one ratio deserves attention despite the positive lifetime returns.</p>
+<p>The example&#39;s tax rate is zero. Its result does not establish a tax treatment for a real investment.</p>
+<h3 id="6-5-when-irr-is-unavailable-or-ambiguous">6.5 When IRR is unavailable or ambiguous</h3>
+<p>For cash flows <code>[-100, 0]</code>, the investor recovers nothing. The engine reports IRR as unavailable.</p>
+<p>For <code>[-100, 230, -132]</code>, cash flows change sign twice. The mathematical equation has roots at 10% and 20%.</p>
+<p>The engine reports an ambiguous status instead of selecting one rate. Use NPV at a justified discount rate.</p>
+<h3 id="6-6-additional-equity-reduces-the-carry-base">6.6 Additional equity reduces the carry base</h3>
+<p>Use a $100 purchase, a two-year hold, $20 year-one CAPEX, and a $170 manual sale value.</p>
+<p>Set revenue, operating costs, debt, fees, and tax to zero. Set carry to 20%.</p>
+<pre><code>Pre-carry cash flows = [−100, −20, 170]
+Whole-deal pre-carry profit = −100 − 20 + 170 = $50
+Carry = $50 × 20% = $10
+Investor cash flows = [−100, −20, 160]
+Total contributions = $100 + $20 = $120
+Additional equity = $20
+Distributions = $160
+Investor multiple = $160 / $120 = 1.3333×</code></pre>
+<p>The $20 contribution is part of invested capital. Ignoring it would overstate both the carry base and the investor multiple.</p>
+<h3 id="6-7-maturity-before-disposal-requires-funding">6.7 Maturity before disposal requires funding</h3>
+<p>Use a $100 purchase, 50% debt, two-year loan tenor, 40% balloon, and three-year holding period.</p>
+<p>Set interest, costs, revenue, fees, tax, and carry to zero. Set the manual sale value to $100.</p>
+<pre><code>Initial debt = $50
+Initial equity = $50
+Scheduled principal = $50 × (1 − 40%) / 2 = $15
+Year-one principal = $15
+Year-two principal = $15 scheduled + $20 maturity = $35
+Year-three debt = $0
+Investor cash flows = [−50, −15, −35, 100]
+Additional equity = $50
+Investor IRR = 0%</code></pre>
+<p>The sale occurs after the loan matures. Investors must fund the intervening principal payments under this model.</p>
+<p>The calculation does not silently postpone the balloon until sale.</p>
+<h2 id="7-saving-importing-and-sharing">7. Saving, importing, and sharing</h2>
+<h3 id="7-1-device-first-data-model">7.1 Device-first data model</h3>
+<p>This release has no account and no cloud study database. It has no external AI integration or market-data connector.</p>
+<p>The application saves study data in the current browser&#39;s local storage. A named library can hold up to 40 studies.</p>
+<p>Storage belongs to the website origin, browser profile, and device. Another browser or device will not automatically see the same studies.</p>
+<p>An origin is its scheme, host, and port; URL paths do not create storage boundaries.</p>
+<p>GitHub Pages apps under the same <code>username.github.io</code> share an origin, so their scripts can access the same browser storage.</p>
+<p>For confidential studies, use a separate browser profile or a trusted local server.</p>
+<p>Browser storage is not encrypted by CapeAI. Someone with access to the same unlocked browser profile may access its studies.</p>
+<p>Clearing site data can remove the local draft and library. Private browsing, browser policies, or storage limits can prevent saving.</p>
+<p>The hosting service still receives ordinary requests for the application files. Study fields are not submitted to a cloud study service.</p>
+<h3 id="7-2-save-the-draft-and-a-named-study">7.2 Save the draft and a named study</h3>
+<p>The editable draft saves automatically after changes when browser storage is available. A named library entry is a separate saved snapshot.</p>
+<ol><li>Enter a recognizable study name.</li><li>Select Save study.</li><li>Open Device library.</li><li>Check that the named entry appears.</li></ol>
+<p>Use Save a copy to create another named entry. This supports separate base, downside, and alternative-exit studies.</p>
+<p>Replacing unsaved work can open Keep a copy of this study? Choose Save &amp; continue to preserve a named copy first.</p>
+<p>Continue without a copy proceeds without making that copy. Cancel returns to the current study.</p>
+<p>If saving fails, the dialog shows the error and keeps the current study unchanged.</p>
+<p>Automatic draft saving is not a portable backup. Export JSON before changing browsers, clearing site data, or moving to another device.</p>
+<h3 id="7-3-keep-a-portable-backup">7.3 Keep a portable backup</h3>
+<ol><li>Open Export.</li><li>Select Study JSON.</li><li>Save the file in your chosen folder.</li><li>Include a study date in the filename.</li><li>Keep the file with its supporting assumptions.</li></ol>
+<p>JSON contains readable study data. It is not password-protected or encrypted.</p>
+<p>The native export identifies <code>capeai.study</code>, export version 1, and study schema version 1. It includes the export timestamp and supported study fields.</p>
+<h3 id="7-4-import-a-study">7.4 Import a study</h3>
+<ol><li>Open Device library.</li><li>Select Import JSON.</li><li>Choose the exported study file.</li><li>Read the import warnings.</li><li>Correct any invalid inputs.</li><li>Review the calculated results.</li><li>Select Save study.</li></ol>
+<p>The import limit is 2,097,152 bytes, or 2 MiB. Unsupported native study fields are excluded with a warning.</p>
+<p>An unsupported schema version or wrong data type blocks import. Supported data with invalid numerical bounds can load for correction.</p>
+<p>Results remain unavailable until all blocking model errors are fixed. Import validation does not authenticate a file&#39;s author or assumptions.</p>
+<h3 id="7-5-migrate-original-html-studies">7.5 Migrate original HTML studies</h3>
+<p>The importer recognizes original flat-field JSON exports. It maps supported acquisition, financing, cost, charter, and exit fields.</p>
+<p>Original authentication fields and unsupported content are excluded. They do not enter the replacement study schema.</p>
+<p>Legacy survey budgets lack reliable payment years. The migration assigns recognized budgets to year one and displays a warning.</p>
+<ol><li>Open the migrated CAPEX schedule.</li><li>Set each payment&#39;s actual year.</li><li>Check all annual charter rows.</li><li>Review the new transaction-cost and working-capital fields.</li><li>Review discount rates, taxes, and disposal costs.</li><li>Export the corrected study in the new format.</li></ol>
+<p>New fields use the blank-study defaults during migration. These defaults require review.</p>
+<p>Empty legacy exit depreciation, OPEX inflation, and brokerage fields use 0%, 2.5%, and 1.25%, respectively. Explicit zero values remain zero.</p>
+<p>The migration reports these assumptions. Review the values before comparing the imported study with an earlier report.</p>
+<p>The old React application&#39;s separate JSON structure is not the original flat-field format. Unsupported files must be entered manually.</p>
+<p>The importer does not remove credentials from old files or historical cloud records. Keep the historical security finding separate from the new app&#39;s behavior.</p>
+<h3 id="7-6-explain-the-shared-result">7.6 Explain the shared result</h3>
+<p>A study file preserves inputs. A report records an interpreted result at a particular model version.</p>
+<p>Include both when another analyst must reproduce the work. Include the underlying evidence for rates, costs, financing, and terminal value.</p>
+<p>Use the application&#39;s print view for a browser-generated PDF. PDF appearance can vary with browser print settings.</p>
+<ol><li>Open Export.</li><li>Select Print / PDF report.</li><li>Open the browser&#39;s Print command in the report tab.</li><li>Select the browser&#39;s PDF destination.</li><li>Save the report with the study JSON.</li></ol>
+<p>Download manual PDF opens the reference book. Print / PDF report creates a report for the current study.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Output</th><th scope="col">Contents and purpose</th></tr></thead><tbody><tr><th scope="row">Study JSON</th><td>Supported editable inputs, format version, and export timestamp. Use it to reopen or reproduce a study.</td></tr><tr><th scope="row">Cash-flow CSV</th><td>Time-zero and annual rows, four return bases, full input paths, and model warnings. Use it for reconciliation.</td></tr><tr><th scope="row">Print report</th><td>Formatted returns, funding, cash flows, scenarios, and complete assumptions. Use the browser&#39;s Print command for PDF.</td></tr><tr><th scope="row">PowerPoint deck</th><td>Presentation summary of returns, funding, annual cash flows, scenarios, and core assumptions. Keep JSON and CSV beside it.</td></tr></tbody></table></div>
+<p>CSV IRR and ROI values use decimal fractions. A value of <code>0.10</code> means 10%; input percentage fields still use whole percentages.</p>
+<p>The CSV&#39;s year-zero cash-flow columns include the complete initial funding. Its expense columns describe operating years and show zero at acquisition.</p>
+<p>Initial CAPEX remains in the input record and initial cash outflow. Do not infer total CAPEX from the annual expense column alone.</p>
+<p>CSV text that could start a spreadsheet formula receives a protective apostrophe. Numeric amounts remain numeric.</p>
+<p>Reports and presentation decks recalculate the selected study with the same engine. They do not use the original application&#39;s separate export formulas.</p>
+<p>PowerPoint creation runs locally with a bundled library. It does not send the study to a presentation service.</p>
+<p>Exported calculated results require valid model inputs. JSON can preserve supported draft data that still needs input corrections.</p>
+<p>The original sign-in, cloud saving, and unfinished AI actions have been retired. They are not part of this release.</p>
+<h2 id="8-local-operation">8. Local operation</h2>
+<p>The application is static browser software. It does not require a study server, database, or API key.</p>
+<p>Use Node.js 20 or later. Node.js 24 is recommended for the documented workflow.</p>
+<p>No dependency installation is required to run the application. The repository contains its browser assets and development scripts.</p>
+<p>The source repository is <a href="https://github.com/Cavramoudis/capeai-maritime" rel="noopener noreferrer">Cavramoudis/capeai-maritime</a>.</p>
+<p>The hosted application is <a href="https://cavramoudis.github.io/capeai-maritime/" rel="noopener noreferrer">CapeAI</a>. Its <a href="https://cavramoudis.github.io/capeai-maritime/manual.html" rel="noopener noreferrer">web manual</a> and <a href="https://cavramoudis.github.io/capeai-maritime/manual.pdf" rel="noopener noreferrer">PDF reference book</a> accompany the calculator.</p>
+<ol><li>Clone the published repository.</li><li>Open its directory in a terminal.</li><li>Run the documented local server command.</li><li>Open the displayed local URL.</li><li>Import your exported study JSON.</li></ol>
+<p>For a new local copy, run:</p>
+<pre><code>git clone https://github.com/Cavramoudis/capeai-maritime.git
+cd capeai-maritime
+npm run dev</code></pre>
+<p>Open <code>http://127.0.0.1:4173</code> in your browser. Keep the terminal running while you use the application.</p>
+<p>Press <code>Ctrl+C</code> in the terminal to stop the server. For later sessions, run <code>npm run dev</code> from the existing repository directory.</p>
+<p>Use the same local address and port to reopen existing local studies. A different host or port creates a separate storage origin.</p>
+<p>To run the automated checks:</p>
+<pre><code>npm test</code></pre>
+<p>To create the static deployment output:</p>
+<pre><code>npm run build</code></pre>
+<p>Local and hosted URLs have separate browser storage. Use JSON export and import to move studies between them.</p>
+<p>The local server serves only this computer through <code>127.0.0.1</code>. It is not configured to share the calculator with other devices.</p>
+<p>After source edits, rebuild with <code>npm run build</code> and reload the browser. The production files are generated in <code>dist/</code>.</p>
+<h2 id="9-errors-and-unavailable-results">9. Errors and unavailable results</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Message or state</th><th scope="col">Meaning</th><th scope="col">Action</th></tr></thead><tbody><tr><th scope="row">Invalid purchase price</th><td>The model needs a positive price.</td><td>Enter the actual study price.</td></tr><tr><th scope="row">Invalid number</th><td>A value is missing, nonfinite, or outside supported bounds.</td><td>Correct the identified field.</td></tr><tr><th scope="row">Duplicate charter year</th><td>Two rows describe the same year.</td><td>Keep one row for that year.</td></tr><tr><th scope="row">Schedule beyond holding period</th><td>A charter or CAPEX row occurs after disposal.</td><td>Correct the year or holding period.</td></tr><tr><th scope="row">IRR unavailable</th><td>The cash-flow pattern or numerical result does not support an investment IRR.</td><td>Read the detailed reason and inspect NPV.</td></tr><tr><th scope="row">IRR ambiguous</th><td>Cash flows change sign more than once.</td><td>Use NPV and inspect funding dates.</td></tr><tr><th scope="row">DSCR unavailable</th><td>Contractual debt service is zero.</td><td>Inspect operating cash directly.</td></tr><tr><th scope="row">Breakeven unavailable</th><td>Earning days or net revenue share prevent a finite rate.</td><td>Inspect the year&#39;s assumptions.</td></tr><tr><th scope="row">Additional equity required</th><td>One or more annual investor cash flows are negative.</td><td>Arrange funding or revise assumptions.</td></tr><tr><th scope="row">Storage unavailable</th><td>The browser cannot retain the study.</td><td>Export a JSON backup.</td></tr><tr><th scope="row">Damaged saved data</th><td>Some records cannot load safely; the original browser data remains unchanged.</td><td>Export readable studies before changing site storage.</td></tr><tr><th scope="row">Unsupported import version</th><td>The file uses an unknown schema or export version.</td><td>Use a supported version or enter the study manually.</td></tr></tbody></table></div>
+<p>A blank cell or unavailable result is not zero. Zero is a valid numerical result when the model calculates it.</p>
+<h2 id="10-limits-and-analyst-checks">10. Limits and analyst checks</h2>
+<h3 id="10-1-model-boundaries">10.1 Model boundaries</h3>
+<ul><li>Annual timing can conceal monthly and seasonal cash shortages.</li><li>The model uses one vessel and one fixed-rate loan.</li><li>It does not simulate refinancing, floating interest, hedges, or foreign exchange.</li><li>It does not model lender covenants, enforcement, defaults, or limited-recourse loss allocation.</li><li>It does not model a debt-service reserve account or cash sweep.</li><li>Working capital is a fixed initial amount with full terminal recovery.</li><li>It does not forecast receivables, payables, inventory, or working-capital losses.</li><li>All capital payments enter one declining tax book under the simplified tax convention.</li><li>It does not model component-specific tax lives or special survey amortization rules.</li><li>It does not apply a preferred-return waterfall or investor-specific tax treatment.</li><li>It does not include emissions, fuel, or regulatory costs unless the analyst enters their cash effect.</li><li>It does not fetch market data or assign scenario probabilities.</li><li>It assumes full collection of entered charter revenue and full recovery of entered sale proceeds.</li></ul>
+<p>Negative investor cash represents another contribution. It does not automatically represent a legal obligation or feasible funding commitment.</p>
+<p>The annual model also nets inflows against outflows within the same year. Actual payment dates can require more peak liquidity than the displayed contribution.</p>
+<h3 id="10-2-validate-the-investment-case">10.2 Validate the investment case</h3>
+<ol><li>Confirm the vessel&#39;s technical condition.</li><li>Verify the acquisition price and transaction costs.</li><li>Check charter counterparty and collection assumptions.</li><li>Estimate off-hire consistently with maintenance plans.</li><li>Verify operating-cost coverage and fee definitions.</li><li>Check the loan&#39;s actual repayment terms.</li><li>Confirm the tax structure independently.</li><li>Test lower charter rates and fewer earning days.</li><li>Test higher costs and earlier CAPEX.</li><li>Test a lower sale value.</li><li>Confirm the source of every required equity contribution.</li><li>Record the model version with the investment decision.</li></ol>
+<p>These checks concern the assumptions supporting the calculation. Software correctness alone cannot establish their reliability.</p>
+<h2 id="11-implementation-reference">11. Implementation reference</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">File</th><th scope="col">Responsibility</th></tr></thead><tbody><tr><th scope="row"><code>src/model.mjs</code></th><td>Validation, annual calculations, return metrics, and sensitivity.</td></tr><tr><th scope="row"><code>src/studies.mjs</code></th><td>Import, export, legacy migration, and local storage.</td></tr><tr><th scope="row"><a href="model-contract.html"><code>docs/MODEL-CONTRACT.md</code></a></th><td>Concise engineering contract for the model.</td></tr><tr><th scope="row"><a href="current-system.html"><code>docs/CURRENT-SYSTEM.md</code></a></th><td>Evidence-based description of the original application.</td></tr><tr><th scope="row"><a href="target-system.html"><code>docs/TARGET-SYSTEM.md</code></a></th><td>Product requirements and acceptance criteria.</td></tr><tr><th scope="row"><a href="glossary.html"><code>docs/GLOSSARY.md</code></a></th><td>Controlled project terminology.</td></tr></tbody></table></div>
+<p><code>calculateStudy()</code> returns validation issues before calculating an invalid study. A valid result contains funding, annual rows, four cash-flow streams, metrics, totals, and warnings.</p>
+<p><code>calculateSensitivity()</code> calls the same financial engine for each charter case. Reports must use these results instead of reimplementing equations.</p>
+<p>Study schema version and model version serve different purposes. The schema identifies data structure; the model version identifies calculation rules.</p>
+<p>The manual&#39;s equations are original explanations of this implementation. The financial references provide general valuation principles, not an endorsement of the software.</p>
+<h2 id="12-editorial-verification">12. Editorial verification</h2>
+<p>The project&#39;s target is at least 80% of prose sentences with no more than 25 words.</p>
+<p>At release, 100% of measured prose sentence candidates met the 25-word limit. Run <code>npm run check:docs</code> for current counts.</p>
+<p>All measured procedural sentences contained no more than 20 words. The procedures use one principal action per step.</p>
+<p>The repository check excludes headings, tables, fenced equations, and code samples. A separate editorial check included punctuated table cells and numbered procedures.</p>
+<p>The check normalized Markdown links and retained inline field names. It counted words with punctuation-based sentence boundaries.</p>
+<p>This verifies a bounded writing metric. It does not certify the ASD-STE100 grammar rules, dictionary, or full standard.</p>
+<p>Read the <a href="references.html#writing-guidance">writing-source note</a> for the distinction between this editorial target and formal conformity.</p></article></main><footer>CapeAI · Model version 1.0.0 · Plain English informed by ASD-STE100 principles; no formal compliance claim.</footer></body></html>

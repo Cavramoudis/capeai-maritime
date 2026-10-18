@@ -1,0 +1,169 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="CapeAI vessel investment calculator — Model contract"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"><title>Model contract · CapeAI</title><link rel="stylesheet" href="manual.css"></head><body><a class="skip" href="#content">Skip to manual</a><header><strong>CAPEAI / REFERENCE</strong><nav aria-label="Documentation"><a href="index.html">Back to calculator</a><a href="manual.html">User & model manual</a><a href="glossary.html">Glossary</a><a href="current-system.html">Original system</a><a href="target-system.html">Target system</a><a href="model-contract.html" aria-current="page">Model contract</a><a href="references.html">Sources</a><a href="manual.pdf" download>Download PDF</a></nav></header><main class="document"><aside><details><summary>On this page</summary><div><a href="#conventions">Conventions</a><a href="#public-api">Public API</a><a href="#study-fields">Study fields</a><a href="#funding-and-debt">Funding and debt</a><a href="#operations-and-fees">Operations and fees</a><a href="#exit-and-working-capital">Exit and working capital</a><a href="#simplified-tax">Simplified tax</a><a href="#cash-flow-bases-and-carry">Cash-flow bases and carry</a><a href="#return-metrics">Return metrics</a><a href="#dscr-and-operating-funding-breakeven">DSCR and operating funding breakeven</a><a href="#result-shape">Result shape</a><a href="#sensitivity">Sensitivity</a><a href="#regression-evidence">Regression evidence</a><a href="#scope-limits">Scope limits</a><a href="#primary-references">Primary references</a></div></details></aside><article id="content"><h1 id="capeai-financial-model-contract">CapeAI financial model contract</h1>
+<p>Engine version: <strong>1.0.0</strong>. Study schema version: <strong>1</strong>.</p>
+<p><code>src/model.mjs</code> is the only calculation engine. Interfaces, scenarios and reports must consume its results. They must not reimplement formulas.</p>
+<h2 id="conventions">Conventions</h2>
+<ul><li>All currency amounts are USD. The model performs no currency conversion.</li><li>Input fields ending in <code>Pct</code> contain whole percentages. For example, <code>55</code> means 55%.</li><li>Output IRR and ROI values are decimal fractions. For example, <code>0.10</code> means 10%.</li><li><code>calculateNPV</code> accepts a decimal discount rate.</li><li>Time zero records acquisition, financing and initial funding.</li><li>Years 1 through <code>holdYears</code> represent equal annual periods.</li><li>All annual operating payments, taxes and distributions occur at year end.</li><li>Exit occurs after the final year&#39;s operations, tax depreciation and contractual principal payment.</li><li>Positive investor cash flow means a distribution. Negative investor cash flow means an equity contribution.</li><li>Annual inflows and outflows are netted. The model does not estimate funding needed within a year.</li><li>Amounts remain unrounded in the engine. Round only for presentation.</li><li>Missing fields are validation errors. Explicit zero values remain zero.</li></ul>
+<h2 id="public-api">Public API</h2>
+<pre><code>createBlankStudy()              // Complete schema; price 0 requires user input.
+createExampleStudy()            // Complete, valid illustrative assumptions.
+validateStudy(study)            // [{ path, severity: &#39;error&#39;|&#39;warning&#39;, message }]
+calculateStudy(study)           // Model described below.
+calculateNPV(rate, cashflows)   // number|null; cashflows start at time zero.
+calculateIRR(cashflows)         // { value: number|null, status, message }
+calculateSensitivity(study, multipliers = [0.7, 0.85, 1, 1.15, 1.3])</code></pre>
+<p><code>calculateStudy</code> does not mutate its input. A valid result contains a copied study.</p>
+<p>An invalid result has <code>valid: false</code>, validation issues, empty rows and flows, and null summaries. It does not echo invalid study data.</p>
+<p>Unknown fields are rejected, including authentication fields. Import adapters must explicitly map legacy data into the versioned schema before calculation.</p>
+<h2 id="study-fields">Study fields</h2>
+<p>Every field below is required. Empty arrays and permitted zero values are valid.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Path</th><th scope="col">Meaning and bounds</th></tr></thead><tbody><tr><th scope="row"><code>schemaVersion</code></th><td>Exactly <code>1</code></td></tr><tr><th scope="row"><code>name</code></th><td>Study label, at most 200 characters</td></tr><tr><th scope="row"><code>notes</code></th><td>User notes, at most 10,000 characters</td></tr><tr><th scope="row"><code>vessel.name</code>, <code>vessel.type</code></th><td>Text, at most 200 characters each</td></tr><tr><th scope="row"><code>vessel.builtYear</code></th><td>Integer 0–2200; zero means unspecified; informational</td></tr><tr><th scope="row"><code>vessel.deadweight</code></th><td>Tonnes, 0–1,000,000; informational</td></tr><tr><th scope="row"><code>vessel.ldt</code></th><td>Light displacement tonnes, 0–1,000,000; used in scrap value</td></tr><tr><th scope="row"><code>acquisition.price</code></th><td>Vessel purchase price, $0.01–$1 trillion</td></tr><tr><th scope="row"><code>acquisition.transactionCosts</code></th><td>Fixed acquisition costs, $0–$1 trillion</td></tr><tr><th scope="row"><code>acquisition.workingCapital</code></th><td>Initial operating cash investment, $0–$1 trillion</td></tr><tr><th scope="row"><code>financing.ltvPct</code></th><td>Debt as a percentage of vessel price, 0–100%</td></tr><tr><th scope="row"><code>financing.interestPct</code></th><td>Fixed annual interest on opening debt, 0–100%</td></tr><tr><th scope="row"><code>financing.tenorYears</code></th><td>Contractual loan maturity, integer 1–30 years</td></tr><tr><th scope="row"><code>financing.balloonPct</code></th><td>Percentage of original debt due after scheduled amortization, 0–100%</td></tr><tr><th scope="row"><code>financing.arrangementFeePct</code></th><td>Time-zero fee as a percentage of debt drawn, 0–100%</td></tr><tr><th scope="row"><code>operations.dailyOpex</code></th><td>Base daily vessel operating costs, $0–$100 million</td></tr><tr><th scope="row"><code>operations.opexDays</code></th><td>Annual cost days, integer 0–365</td></tr><tr><th scope="row"><code>operations.inflationPct</code></th><td>Compound annual change in OPEX, −100–100%</td></tr><tr><th scope="row"><code>operations.baseDailyRate</code></th><td>Base daily charter rate, $0–$100 million</td></tr><tr><th scope="row"><code>operations.baseRevenueDays</code></th><td>Base earning days, integer 0–365</td></tr><tr><th scope="row"><code>operations.brokeragePct</code></th><td>Annual brokerage as a percentage of gross revenue, 0–100%</td></tr><tr><th scope="row"><code>operations.managementFeePct</code></th><td>Annual SPV fee as a percentage of original vessel price, 0–100%</td></tr><tr><th scope="row"><code>projection.holdYears</code></th><td>Integer 1–30 years</td></tr><tr><th scope="row"><code>projection.assetDiscountPct</code></th><td>Discount rate for asset cash flows, 0–100%</td></tr><tr><th scope="row"><code>projection.equityDiscountPct</code></th><td>Discount rate for each equity cash-flow basis, 0–100%</td></tr><tr><th scope="row"><code>charter</code></th><td>At most 30 <code>{ year, dailyRate, revenueDays }</code> rows</td></tr><tr><th scope="row"><code>charter[].year</code></th><td>Unique integer 1 through holding period</td></tr><tr><th scope="row"><code>charter[].dailyRate</code></th><td>Annual override, $0–$100 million</td></tr><tr><th scope="row"><code>charter[].revenueDays</code></th><td>Annual override, integer 0–365</td></tr><tr><th scope="row"><code>capex</code></th><td>At most 300 <code>{ year, amount, label }</code> rows; repeated years are allowed</td></tr><tr><th scope="row"><code>capex[].year</code></th><td>Payment year, integer 0 through holding period</td></tr><tr><th scope="row"><code>capex[].amount</code></th><td>Nominal payment, $0–$1 trillion</td></tr><tr><th scope="row"><code>capex[].label</code></th><td>Text, at most 200 characters</td></tr><tr><th scope="row"><code>exit.mode</code></th><td><code>depreciation</code>, <code>manual</code> or <code>scrap</code></td></tr><tr><th scope="row"><code>exit.depreciationPct</code></th><td>Annual decline for the depreciation exit estimate, 0–100%</td></tr><tr><th scope="row"><code>exit.manualValue</code></th><td>User&#39;s gross sale estimate, $0–$1 trillion</td></tr><tr><th scope="row"><code>exit.scrapPerTon</code></th><td>Scrap price per light displacement tonne, $0–$100 million</td></tr><tr><th scope="row"><code>exit.disposalCostPct</code></th><td>Sale cost as a percentage of gross exit value, 0–100%</td></tr><tr><th scope="row"><code>tax.ratePct</code></th><td>Simplified tax rate, 0–100%</td></tr><tr><th scope="row"><code>tax.annualDepreciationPct</code></th><td>Annual declining tax-book depreciation rate, 0–100%</td></tr><tr><th scope="row"><code>tax.taxSaleGain</code></th><td>Boolean: include positive disposal gains in taxable income</td></tr><tr><th scope="row"><code>carry.ratePct</code></th><td>Whole-deal nominal profit share, 0–100%</td></tr></tbody></table></div>
+<p>All numeric values must be finite numbers, not numeric strings. Unknown object keys are errors.</p>
+<p>Text rejects unsupported control characters, unpaired UTF-16 surrogates, and U+FFFE/U+FFFF. Tabs, line breaks, and complete Unicode characters are permitted.</p>
+<p>When holding period changes, charter and CAPEX years outside the new period require explicit correction. The engine does not discard them.</p>
+<p>Warnings do not block calculation. Current input warnings cover enabled simplified tax and zero light displacement for scrap valuation.</p>
+<h2 id="funding-and-debt">Funding and debt</h2>
+<p>Use these symbols:</p>
+<ul><li><code>P</code>: acquisition price.</li><li><code>A</code>: acquisition transaction costs.</li><li><code>W</code>: initial working capital.</li><li><code>C0</code>: sum of CAPEX payments at time zero.</li><li><code>D</code>: initial loan draw.</li><li><code>F</code>: loan arrangement fee.</li><li><code>H</code>: holding period.</li><li><code>T</code>: loan tenor.</li><li>Percentage symbols below denote decimal fractions.</li></ul>
+<pre><code>D = P × LTV
+F = D × arrangement-fee rate
+Asset uses = P + A + W + C0
+Total initial uses = Asset uses + F
+Initial equity = Total initial uses − D
+Annual scheduled principal = D × (1 − balloon rate) / T</code></pre>
+<p>Debt finances the vessel price only. Acquisition costs, initial CAPEX, working capital and arrangement fees require equity.</p>
+<p>Each year follows this order:</p>
+<ol><li>Calculate interest on the opening loan balance.</li><li>Pay scheduled principal, limited to the remaining balance.</li><li>At maturity, repay every remaining dollar as <code>maturityPrincipal</code>.</li><li>At exit, settle any balance still outstanding as <code>exitDebtSettlement</code>.</li></ol>
+<p>No refinancing is assumed. A balloon paid at maturity can require additional equity before disposal.</p>
+<p>On early sale, settlement includes all outstanding scheduled principal and balloon. On sale at maturity, no duplicate settlement occurs.</p>
+<pre><code>Interest = opening balance × interest rate
+Total principal = scheduled principal + maturity principal + exit settlement
+Debt service = interest + total principal
+Closing balance = opening balance − total principal</code></pre>
+<h2 id="operations-and-fees">Operations and fees</h2>
+<p>An override row replaces both the base daily rate and earning days for its year. Without a row, both base assumptions apply.</p>
+<p>Explicit zero days or a zero rate produce zero revenue. They never restore the base assumptions.</p>
+<pre><code>Revenue[y] = daily charter rate[y] × earning days[y]
+OPEX[y] = daily OPEX × annual cost days × (1 + inflation)^(y−1)
+Brokerage[y] = revenue[y] × brokerage rate
+Management[y] = original vessel price × management-fee rate
+Operating surplus[y] = revenue[y] − OPEX[y] − brokerage[y] − management[y]
+CAPEX[y] = sum of nominal payments assigned to year y</code></pre>
+<p>Management fees do not inflate or decline with vessel value. Brokerage changes with each year&#39;s actual revenue.</p>
+<p>CAPEX is paid in its selected year. It is not amortized into an invented annual cash payment.</p>
+<h2 id="exit-and-working-capital">Exit and working capital</h2>
+<pre><code>Depreciation-mode gross value = P × (1 − exit depreciation)^H
+Manual-mode gross value = manual value
+Scrap-mode gross value = light displacement tonnes × scrap price per tonne
+Disposal costs = gross value × disposal-cost rate
+Net sale proceeds = gross value − disposal costs</code></pre>
+<p>These are alternative user assumptions. They do not constitute an independent valuation or use live market data.</p>
+<p>CAPEX does not automatically increase the gross sale estimate. Use a manual exit estimate when that effect matters.</p>
+<p>All initial working capital returns at exit at its original nominal amount. No interest, growth or impairment is modeled.</p>
+<p><code>exit.debtSettlement</code> reports only the additional early-sale balance settlement. Final-year contractual principal remains in the annual debt schedule.</p>
+<h2 id="simplified-tax">Simplified tax</h2>
+<p>Tax is zero unless the user enables a positive rate. This is an illustrative calculation, not a jurisdiction-specific tax model.</p>
+<pre><code>Initial tax book = P + acquisition transaction costs + year-zero CAPEX
+Tax depreciation[y] = opening tax book[y] × annual tax-depreciation rate
+Closing tax book[y] = opening book − depreciation + current-year CAPEX
+Taxable disposal gain = max(0, net sale proceeds − closing tax book)</code></pre>
+<p>Current-year CAPEX joins the book at year end. It starts depreciation in the following year.</p>
+<p>The disposal gain is included only in the exit year when <code>taxSaleGain</code> is true. Disposal losses are not deducted.</p>
+<p>Let <code>G</code> be that year&#39;s taxable disposal gain, or zero otherwise.</p>
+<pre><code>Asset tax = tax rate × max(0, operating surplus − tax depreciation + G)
+Equity tax = tax rate × max(0, operating surplus − interest − tax depreciation + G)
+Pre-fee equity tax = tax rate × max(0, revenue − OPEX − interest − tax depreciation + G)</code></pre>
+<p>Operating losses can offset a positive disposal gain within the same year. No loss carries forward or back; there are no tax refunds.</p>
+<p>Principal, working capital and carry are not tax deductions. Arrangement fees are not deducted or amortized for tax.</p>
+<p>Tax is recalculated for each cash-flow basis. Removing a deductible annual fee can therefore increase tax in the pre-fee comparison.</p>
+<h2 id="cash-flow-bases-and-carry">Cash-flow bases and carry</h2>
+<p>Each cash-flow array begins with its time-zero outlay.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table><thead><tr><th scope="col">Basis</th><th scope="col">Time zero</th><th scope="col">Annual flow</th></tr></thead><tbody><tr><th scope="row"><code>asset</code></th><td>Negative asset uses</td><td>Operating surplus − CAPEX − asset tax + terminal cash</td></tr><tr><th scope="row"><code>preFees</code></th><td>Negative initial equity</td><td>Revenue − OPEX − CAPEX − pre-fee equity tax − debt service + terminal cash</td></tr><tr><th scope="row"><code>preCarry</code></th><td>Negative initial equity</td><td>Operating surplus − CAPEX − equity tax − debt service + terminal cash</td></tr><tr><th scope="row"><code>investor</code></th><td>Negative initial equity</td><td>Pre-carry equity cash flow − carry payment</td></tr></tbody></table></div>
+<p>Terminal cash is net sale proceeds plus working-capital release. It is zero before exit.</p>
+<p>Asset flows include brokerage and SPV management as operating expenses. They exclude debt proceeds, debt payments, arrangement fees and carry.</p>
+<p>The pre-fee equity comparison excludes annual brokerage, management and carry. It retains loan arrangement costs in the initial equity outlay.</p>
+<pre><code>Whole-deal nominal profit = sum of every pre-carry equity flow, including time zero
+Carry = max(0, whole-deal nominal profit) × carry rate
+Final investor flow = final pre-carry flow − carry</code></pre>
+<p>Negative annual flows reduce the carry base. No preferred return, hurdle, catch-up or interim carry is modeled.</p>
+<p>Carry is paid at exit, even if that requires a final equity contribution. Earlier distributions are not automatically held in reserve.</p>
+<h2 id="return-metrics">Return metrics</h2>
+<p>Every basis has the same metric shape:</p>
+<pre><code>invested = absolute sum of negative cash flows
+distributions = sum of positive cash flows
+profit = distributions − invested
+multiple = distributions / invested
+ROI = profit / invested
+NPV(r) = sum from t=0 through H of cashflow[t] / (1+r)^t</code></pre>
+<p>Multiple and ROI are null when invested capital is zero. Additional contributions count as invested capital.</p>
+<p>Asset NPV uses <code>assetDiscountPct</code>. All three equity NPVs use <code>equityDiscountPct</code>. The engine does not estimate either required return.</p>
+<p>IRR is the annual rate that sets NPV to zero. It needs an initial outflow pattern followed by positive receipts.</p>
+<p>The solver ignores exact zero entries when counting sign changes. With one change from negative to positive, a unique investment IRR exists.</p>
+<p>With more than one sign change, the engine reports <code>ambiguous</code>. This conservative label means uniqueness is not assured; it does not assert multiple real roots.</p>
+<p>Without both positive and negative flows, IRR is <code>unavailable</code>. Unrepresentable or unreliable numerical roots are also unavailable.</p>
+<p>The solver uses bracketed bisection in <code>log(1+r)</code> and checks the residual. It never returns an unconverged starting guess.</p>
+<h2 id="dscr-and-operating-funding-breakeven">DSCR and operating funding breakeven</h2>
+<p>These measures exclude sale proceeds and working-capital release. They also exclude carry and additional early-sale debt settlement.</p>
+<p>Operating tax excludes disposal gains:</p>
+<pre><code>Operating tax = tax rate × max(0, operating surplus − interest − tax depreciation)
+Operating cash flow = operating surplus − actual CAPEX − operating tax
+Contractual debt service = interest + scheduled principal + maturity principal
+DSCR = operating cash flow / contractual debt service</code></pre>
+<p>DSCR is null when contractual debt service is zero. At maturity, its denominator includes the balloon.</p>
+<p>Operating funding breakeven is the minimum daily charter rate that covers the year&#39;s cash requirements without sale proceeds.</p>
+<p>Let:</p>
+<pre><code>K = CAPEX + interest + scheduled principal + maturity principal
+S = interest + tax depreciation
+q = tax rate
+b = brokerage rate
+d = actual earning days</code></pre>
+<p>Required operating surplus <code>X</code> follows:</p>
+<pre><code>If K ≤ S: X = K
+If K &gt; S and q &lt; 1: X = (K − qS) / (1 − q)
+Required daily rate = (OPEX + management + X) / (d × (1 − b))</code></pre>
+<p>The result is null for zero earning days or 100% brokerage. It is also null when 100% tax prevents a finite solution.</p>
+<p>This metric uses actual earning days. It can rise sharply in a CAPEX or loan-maturity year.</p>
+<h2 id="result-shape">Result shape</h2>
+<pre><code>{
+  valid, issues, engineVersion, study,
+  rows,                         // Years 1..hold; includes all components below.
+  flows: { asset, preFees, preCarry, investor }, // Arrays include time zero.
+  metrics: { asset, preFees, preCarry, investor },
+  funding: { initialUses, initialDebt, initialEquity, arrangementFee, upfrontCapex },
+  exit: { grossValue, disposalCosts, netValue, debtSettlement,
+          workingCapitalRelease, taxBookValue, taxableGain },
+  totals: { revenue, opex, capex, brokerage, management, interest, principal,
+            tax, carry, additionalEquity, distributions },
+  warnings                     // Plain text; input and calculated conditions.
+}</code></pre>
+<p>Each <code>metrics</code> item contains <code>irr</code>, <code>npv</code>, <code>discountPct</code>, <code>invested</code>, <code>distributions</code>, <code>profit</code>, <code>multiple</code> and <code>roi</code>.</p>
+<p>Each <code>irr</code> contains <code>value</code>, <code>status</code> (<code>ok</code>, <code>unavailable</code>, or <code>ambiguous</code>) and <code>message</code>.</p>
+<p>Each annual row contains:</p>
+<pre><code>year, dailyRate, revenueDays, revenue, opex, brokerage, management, capex,
+taxDepreciation, taxBookValue, assetTax, equityTax, preFeeTax,
+interest, scheduledPrincipal, maturityPrincipal, exitDebtSettlement,
+principal, debtService, debtOpening, debtClosing,
+saleValue, disposalCosts, saleNet, workingCapitalRelease,
+assetCashFlow, equityPreFees, equityPreCarry, carry, investorCashFlow,
+contribution, distribution, operatingCashFlow, dscr, breakevenDailyRate,
+cumulativeInvestorCashFlow</code></pre>
+<p><code>contribution = max(0, −investorCashFlow)</code>. <code>distribution = max(0, investorCashFlow)</code>.</p>
+<p>Cumulative investor cash flow includes the initial equity outlay. It is not cumulative gross distributions.</p>
+<h2 id="sensitivity">Sensitivity</h2>
+<p>Sensitivity multiplies every base and overridden daily charter rate by the selected factor. It preserves earning days and all other assumptions.</p>
+<p>Each point runs <code>calculateStudy</code>. It reports the after-carry investor IRR, NPV, multiple and additional equity.</p>
+<p>Scenario results therefore use the same fees, tax, debt, CAPEX and carry rules as the main report.</p>
+<h2 id="regression-evidence">Regression evidence</h2>
+<p>Run <code>node --test tests/model.test.mjs</code>.</p>
+<p>Independent reference cases cover zero inputs, charter overrides, no-hire years, early sale, maturity, terminal modes, fees, tax and carry.</p>
+<p>They also cover timed CAPEX, funding reconciliation, additional contributions, consistent investor metrics and invalid or ambiguous IRR.</p>
+<p>The tests verify investor cash-flow identities and total debt repayment. Model output must remain finite or explicitly null.</p>
+<h2 id="scope-limits">Scope limits</h2>
+<p>The model excludes monthly payment dates, day-count conventions, floating rates, refinancing and covenant tests.</p>
+<p>It excludes detailed jurisdictional taxes, tax-loss carryforwards, currency conversion, hedging, reserve-account interest and intra-year liquidity.</p>
+<p>It does not forecast charter markets, vessel values, technical condition, survey dates or downtime. Users must enter those assumptions.</p>
+<p>Negative equity flows assume the investor can fund every shortfall. The model does not enforce limited liability or simulate insolvency.</p>
+<p>There is no automated investment recommendation. Positive NPV depends on the user&#39;s assumptions and chosen required return.</p>
+<h2 id="primary-references">Primary references</h2>
+<p>The cash-flow and discount-rate separation follows the principles in Damodaran&#39;s <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/lectures/approach.html" rel="noopener noreferrer">Approaches to Valuation</a>.</p>
+<p>Cash-flow timing and required returns are also discussed in <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/cfin2E/firstprin.htm" rel="noopener noreferrer">First Principles</a>.</p>
+<p>The annual timing, tax approximation and carry convention above are CapeAI implementation choices. They are not presented as Damodaran&#39;s prescribed vessel model.</p></article></main><footer>CapeAI · Model version 1.0.0 · Plain English informed by ASD-STE100 principles; no formal compliance claim.</footer></body></html>

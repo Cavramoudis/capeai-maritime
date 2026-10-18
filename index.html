@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173641">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="A transparent vessel investment calculator. Model acquisition, operations, debt and exit, compare cash flows, and keep studies on your device.">
+  <title>CapeAI — Vessel investment workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%23173641'/%3E%3Cpath d='M29 12H14L10 20l4 8h15M20 12v16' fill='none' stroke='%23f4f8f4' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./src/styles.css">
+  <script type="module" src="./src/app.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to study</a>
+  <div id="app"><div id="main" class="loading-shell"><strong>CapeAI</strong><p>Opening your vessel workspace…</p></div></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <input id="import-file" type="file" accept=".json,application/json" hidden>
+  <dialog id="leave-dialog" aria-labelledby="leave-title">
+    <h2 id="leave-title">Keep a copy of this study?</h2>
+    <p>Your current draft will be replaced. Save a named copy to the device library before you continue.</p>
+    <p id="leave-error" class="field-error" role="alert"></p>
+    <div class="dialog-actions"><button type="button" data-action="leave-cancel">Cancel</button><button type="button" data-action="leave-discard">Continue without a copy</button><button type="button" class="primary" data-action="leave-save">Save &amp; continue</button></div>
+  </dialog>
+  <noscript><p class="noscript">CapeAI needs JavaScript to calculate. Enable JavaScript, or read the <a href="./manual.html">user manual</a>.</p></noscript>
+</body>
+</html>
